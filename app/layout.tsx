@@ -1,9 +1,12 @@
 import { ClerkProvider } from '@clerk/nextjs';
 import { clerkAppearance } from '@/lib/clerk-appearance';
 import type { Metadata } from 'next';
-import { DM_Sans, Encode_Sans_Condensed } from 'next/font/google';
+import { DM_Sans, Encode_Sans_Condensed, Geist } from 'next/font/google';
 import './globals.css';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const innovator = DM_Sans({
   variable: '--font-innovator',
@@ -31,7 +34,7 @@ export default function RootLayout({
   return (
     <html
       lang='en'
-      className={`${innovator.variable} ${encodeSansCondensed.variable} h-full bg-surface-base antialiased`}
+      className={cn("h-full", "bg-surface-base", "antialiased", innovator.variable, encodeSansCondensed.variable, "font-sans", geist.variable)}
     >
       <head>
         <link

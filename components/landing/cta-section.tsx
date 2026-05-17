@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 function ArrowIcon() {
@@ -32,11 +33,16 @@ export function CtaSection() {
           reducir pérdidas y tomar mejores decisiones bajo presión.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Button href="/sign-up" variant="primary" icon={<ArrowIcon />}>
-            Solicitar acceso
+          <Button asChild className="bg-brand text-white border-brand hover:bg-[#0a2d6e] active:bg-[#051a42] px-5 py-2.5 h-auto rounded-[var(--radius-xs)] gap-2">
+            <Link href="/sign-up">
+              Solicitar acceso
+              <ArrowIcon />
+            </Link>
           </Button>
-          <Button href="/sign-in" variant="secondary">
-            Ya tengo cuenta
+          <Button asChild variant="outline" className="border-border-subtle text-text-primary hover:bg-surface-raised px-5 py-2.5 h-auto rounded-[var(--radius-xs)]">
+            <Link href="/sign-in">
+              Ya tengo cuenta
+            </Link>
           </Button>
         </div>
       </div>

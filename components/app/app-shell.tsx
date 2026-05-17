@@ -4,6 +4,7 @@ import { UserButton } from '@clerk/nextjs'
 import Link from 'next/link'
 import { useState } from 'react'
 import { AlertsPanel } from '@/components/app/alerts-panel'
+import { ChatWidget } from '@/components/app/chat-widget'
 import { RiskMap, type MapView } from '@/components/app/risk-map'
 
 type ScenarioMode = 'demo' | 'current'
@@ -92,6 +93,8 @@ export function AppShell() {
           <RiskMap key={scenario} view={view} isDemo={isDemo} />
         </div>
       </div>
+
+      <ChatWidget />
     </div>
   )
 }
