@@ -22,6 +22,7 @@
 
 # misc
 .DS_Store
+.venv-img/
 *.pem
 
 # debug
@@ -39,3 +40,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# clerk configuration (can include secrets)
+/.clerk/
+
+# ia
+.agents
+.cursor
+.claude
+

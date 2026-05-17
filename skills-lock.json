@@ -1,0 +1,233 @@
+{
+  "version": 1,
+  "skills": {
+    "clerk": {
+      "source": "clerk/skills",
+      "sourceType": "github",
+      "skillPath": "skills/core/clerk/SKILL.md",
+      "computedHash": "904255abae6e7e5f81d3710db0e3ce23ec5420f14923723d11d626d2755b06a1"
+    },
+    "clerk-android": {
+      "source": "clerk/skills",
+      "sourceType": "github",
+      "skillPath": "skills/mobile/clerk-android/SKILL.md",
+      "computedHash": "c0a7edcc92421abb9471c66937183b82ba587c8335f74bd1f25eedfd200a618c"
+    },
+    "clerk-astro-patterns": {
+      "source": "clerk/skills",
+      "sourceType": "github",
+      "skillPath": "skills/frameworks/clerk-astro-patterns/SKILL.md",
+      "computedHash": "3df12f0c35d649167c3829e2b535fab33a75c7e405eb8379656c8a30fec821d8"
+    },
+    "clerk-backend-api": {
+      "source": "clerk/skills",
+      "sourceType": "github",
+      "skillPath": "skills/core/clerk-backend-api/SKILL.md",
+      "computedHash": "723ee35b2727923bbc9050c103369985d3d2ced00c9d25d79ff6383a23d8fea9"
+    },
+    "clerk-billing": {
+      "source": "clerk/skills",
+      "sourceType": "github",
+      "skillPath": "skills/features/clerk-billing/SKILL.md",
+      "computedHash": "8ac867c502c8b7e2a6928ef16a446565c884e027465a0e408e80c8e2ee301e99"
+    },
+    "clerk-chrome-extension-patterns": {
+      "source": "clerk/skills",
+      "sourceType": "github",
+      "skillPath": "skills/frameworks/clerk-chrome-extension-patterns/SKILL.md",
+      "computedHash": "10585eb6da43efe02048c9ed3911850bd9733ae909b62e2662473479e2335cc6"
+    },
+    "clerk-custom-ui": {
+      "source": "clerk/skills",
+      "sourceType": "github",
+      "skillPath": "skills/core/clerk-custom-ui/SKILL.md",
+      "computedHash": "72dcda42d3755a468049e828180b66c25fb2ac66fd99bd1514699404445924c6"
+    },
+    "clerk-expo-patterns": {
+      "source": "clerk/skills",
+      "sourceType": "github",
+      "skillPath": "skills/frameworks/clerk-expo-patterns/SKILL.md",
+      "computedHash": "ef550f902d44c3292db0578409aed0729075ea559ed77bb98b294c8c7114599a"
+    },
+    "clerk-nextjs-patterns": {
+      "source": "clerk/skills",
+      "sourceType": "github",
+      "skillPath": "skills/frameworks/clerk-nextjs-patterns/SKILL.md",
+      "computedHash": "6c5b897dcef62550436b24b3cc9087658dd97c9ca88272ab48a5c094276d72fb"
+    },
+    "clerk-nuxt-patterns": {
+      "source": "clerk/skills",
+      "sourceType": "github",
+      "skillPath": "skills/frameworks/clerk-nuxt-patterns/SKILL.md",
+      "computedHash": "4623d9890b27ad26261fb8821476036b82f91d636c423d19df1557b9db1c5d3c"
+    },
+    "clerk-orgs": {
+      "source": "clerk/skills",
+      "sourceType": "github",
+      "skillPath": "skills/features/clerk-orgs/SKILL.md",
+      "computedHash": "50a514001d6e1f51dd1bf4e3b0b62336ea5209e36c76be5afe16a4445087124c"
+    },
+    "clerk-react-patterns": {
+      "source": "clerk/skills",
+      "sourceType": "github",
+      "skillPath": "skills/frameworks/clerk-react-patterns/SKILL.md",
+      "computedHash": "9bbc28d1825bda0f31a33660b3e339719bc0ad2a30696dfde14ef6b9493371b0"
+    },
+    "clerk-react-router-patterns": {
+      "source": "clerk/skills",
+      "sourceType": "github",
+      "skillPath": "skills/frameworks/clerk-react-router-patterns/SKILL.md",
+      "computedHash": "9483ecb8afea7aa4dd6ae9c784b839cb9cb5948db552837a24913d5d9946c7e4"
+    },
+    "clerk-setup": {
+      "source": "clerk/skills",
+      "sourceType": "github",
+      "skillPath": "skills/core/clerk-setup/SKILL.md",
+      "computedHash": "a35fe4e4d03a71825d9880c9cd76ddcae536beed535a2be44908117b4661e749"
+    },
+    "clerk-swift": {
+      "source": "clerk/skills",
+      "sourceType": "github",
+      "skillPath": "skills/mobile/clerk-swift/SKILL.md",
+      "computedHash": "a3648958dfb6b4336627a70a3ec2c46dc7b39712ecd22184ee152583de0672dd"
+    },
+    "clerk-tanstack-patterns": {
+      "source": "clerk/skills",
+      "sourceType": "github",
+      "skillPath": "skills/frameworks/clerk-tanstack-patterns/SKILL.md",
+      "computedHash": "dae6b1764f59c280cc257fc114ff3d2acc186d27537875e3c461650b7addb85d"
+    },
+    "clerk-testing": {
+      "source": "clerk/skills",
+      "sourceType": "github",
+      "skillPath": "skills/features/clerk-testing/SKILL.md",
+      "computedHash": "3655e0e561d99e41ec06fea0ca39736c3ecbce8e6fb703f0a09373297e56bc82"
+    },
+    "clerk-vue-patterns": {
+      "source": "clerk/skills",
+      "sourceType": "github",
+      "skillPath": "skills/frameworks/clerk-vue-patterns/SKILL.md",
+      "computedHash": "f6e57b2cc237d9c2e407800827b2f6984a4bbb9630c6e5c3bfa7657ac3081db6"
+    },
+    "clerk-webhooks": {
+      "source": "clerk/skills",
+      "sourceType": "github",
+      "skillPath": "skills/features/clerk-webhooks/SKILL.md",
+      "computedHash": "de12deda380be19d32d62c4106a6b78736cd4d9cc6dd5b214f6039853ad89e54"
+    },
+    "mapbox-android-patterns": {
+      "source": "mapbox/mapbox-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/mapbox-android-patterns/SKILL.md",
+      "computedHash": "bb6aa2b6e6d117281ea75bad68a18ab3acffff493c08fa19810898829b3512ad"
+    },
+    "mapbox-cartography": {
+      "source": "mapbox/mapbox-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/mapbox-cartography/SKILL.md",
+      "computedHash": "53601b0955c1d07c86f6e0408bf05c0dae5c52d69b038d47e382976b7377d88a"
+    },
+    "mapbox-data-visualization-patterns": {
+      "source": "mapbox/mapbox-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/mapbox-data-visualization-patterns/SKILL.md",
+      "computedHash": "e210b2da957db517c4e4a2e7db8c76c29e91e00d89ea7d75351bc2e3e948e03f"
+    },
+    "mapbox-flutter-patterns": {
+      "source": "mapbox/mapbox-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/mapbox-flutter-patterns/SKILL.md",
+      "computedHash": "f67df6d6160fc404b62b9b7888e40f0ec3f037e6d39358ad4f67751ba595696b"
+    },
+    "mapbox-geospatial-operations": {
+      "source": "mapbox/mapbox-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/mapbox-geospatial-operations/SKILL.md",
+      "computedHash": "14ddc6c35cd1db188c05ecd093c8ed4334d369a98d127fcd36a91a73e3e0164c"
+    },
+    "mapbox-google-maps-migration": {
+      "source": "mapbox/mapbox-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/mapbox-google-maps-migration/SKILL.md",
+      "computedHash": "686d49eaccc0f9d0a78f89173c9cbdecc6ab7a12fdbd5994b02e7a6b37197722"
+    },
+    "mapbox-ios-patterns": {
+      "source": "mapbox/mapbox-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/mapbox-ios-patterns/SKILL.md",
+      "computedHash": "dd2c8a6dabc922d233c89ce833a87455f3ee9ea376cf3421024f5187f37b3e78"
+    },
+    "mapbox-location-grounding": {
+      "source": "mapbox/mapbox-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/mapbox-location-grounding/SKILL.md",
+      "computedHash": "056d549a99df6fe891f5eaf17ab39c28df0ce484b83f1bdd7642ae13d598821c"
+    },
+    "mapbox-maplibre-migration": {
+      "source": "mapbox/mapbox-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/mapbox-maplibre-migration/SKILL.md",
+      "computedHash": "c3a4506e5f97a7215cd8ce50b200befb847341e8a3e3af8ec02454107aec2b0f"
+    },
+    "mapbox-mcp-devkit-patterns": {
+      "source": "mapbox/mapbox-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/mapbox-mcp-devkit-patterns/SKILL.md",
+      "computedHash": "06cb980beb990ed8b92062a40a394f67ce1dcc991f91cea1ef2f5bb973f8e1a9"
+    },
+    "mapbox-mcp-runtime-patterns": {
+      "source": "mapbox/mapbox-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/mapbox-mcp-runtime-patterns/SKILL.md",
+      "computedHash": "1fd127a79a02894f4353fc109540ad7b6eb5a26730a1cfd6e5dd4e8e0cb2a560"
+    },
+    "mapbox-search-integration": {
+      "source": "mapbox/mapbox-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/mapbox-search-integration/SKILL.md",
+      "computedHash": "3e50654eb228ced02403a3bd37166bdec7f34ad1857f6abad6b31840c8376eb6"
+    },
+    "mapbox-search-patterns": {
+      "source": "mapbox/mapbox-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/mapbox-search-patterns/SKILL.md",
+      "computedHash": "c92de6e6f3338c75a6e71cfa9ca41ca79de9e4315b2e2807a44a524cc8a07ac4"
+    },
+    "mapbox-store-locator-patterns": {
+      "source": "mapbox/mapbox-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/mapbox-store-locator-patterns/SKILL.md",
+      "computedHash": "82dc82111a8f42fe84977c4574cc45352845eba6e8170a6965a4d86194682953"
+    },
+    "mapbox-style-patterns": {
+      "source": "mapbox/mapbox-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/mapbox-style-patterns/SKILL.md",
+      "computedHash": "ed8908002221a48262aa2811c9f8ba19bd884c155ba050cb5ea65abd9bc82641"
+    },
+    "mapbox-style-quality": {
+      "source": "mapbox/mapbox-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/mapbox-style-quality/SKILL.md",
+      "computedHash": "f15c2874eb42e857f831a20186879be33a3d41e8032f1d0ed32488d36f496950"
+    },
+    "mapbox-token-security": {
+      "source": "mapbox/mapbox-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/mapbox-token-security/SKILL.md",
+      "computedHash": "481ecb423634e19c0ee9bb3e0ed95901fac03ef6fee35e1654c25b5db3c7948a"
+    },
+    "mapbox-web-integration-patterns": {
+      "source": "mapbox/mapbox-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/mapbox-web-integration-patterns/SKILL.md",
+      "computedHash": "92bb0f77b79861c7962df4e766e0b455377932abd625ac9c6aa09dbfcaa5d1e7"
+    },
+    "mapbox-web-performance-patterns": {
+      "source": "mapbox/mapbox-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/mapbox-web-performance-patterns/SKILL.md",
+      "computedHash": "e6a22ee384645f88e2955975ddda7d6b329afb8ed95af71bb55493a1e04c10df"
+    }
+  }
+}
