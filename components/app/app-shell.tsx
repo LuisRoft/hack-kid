@@ -6,13 +6,22 @@ import { useState } from 'react'
 import { AlertsPanel } from '@/components/app/alerts-panel'
 import { RiskMap, type MapView } from '@/components/app/risk-map'
 
+type ScenarioMode = 'demo' | 'current'
+
 const VIEWS: { id: MapView; label: string }[] = [
   { id: 'logistics', label: 'Logística' },
   { id: 'health', label: 'Salud' },
 ]
 
+const SCENARIOS: { id: ScenarioMode; label: string }[] = [
+  { id: 'demo', label: 'Histórico 2023' },
+  { id: 'current', label: 'Actual' },
+]
+
 export function AppShell() {
   const [view, setView] = useState<MapView>('logistics')
+  const [scenario, setScenario] = useState<ScenarioMode>('current')
+  const isDemo = scenario === 'demo'
 
   return (
     <div
@@ -51,6 +60,24 @@ export function AppShell() {
                 </button>
               ))}
             </div>
+
+            <div className="flex overflow-hidden rounded-md border border-border-subtle">
+              {SCENARIOS.map((s, i) => (
+                <button
+                  key={s.id}
+                  onClick={() => setScenario(s.id)}
+                  className={[
+                    'px-4 py-1.5 text-sm font-medium transition-colors',
+                    i > 0 ? 'border-l border-border-subtle' : '',
+                    scenario === s.id
+                      ? 'bg-brand text-text-secondary'
+                      : 'text-text-muted hover:bg-surface-raised hover:text-text-primary',
+                  ].join(' ')}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <UserButton />
@@ -59,10 +86,10 @@ export function AppShell() {
 
       {/* Content: sidebar + map */}
       <div style={{ display: 'flex', overflow: 'hidden', minHeight: 0 }}>
-        {view === 'logistics' && <AlertsPanel />}
+        {view === 'logistics' && <AlertsPanel key={scenario} isDemo={isDemo} />}
 
         <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
-          <RiskMap view={view} />
+          <RiskMap key={scenario} view={view} isDemo={isDemo} />
         </div>
       </div>
     </div>
