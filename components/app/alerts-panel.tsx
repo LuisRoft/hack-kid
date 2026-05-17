@@ -51,7 +51,7 @@ function alertKey(alert: Alert, isDemo: boolean): string {
   return `${scenario}-${alert.corridor_name}-${alert.horizon_hours}`
 }
 
-export function AlertsPanel({ isDemo }: { isDemo: boolean }) {
+export function AlertsPanel({ isDemo, onCollapse }: { isDemo: boolean; onCollapse: () => void }) {
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -76,14 +76,27 @@ export function AlertsPanel({ isDemo }: { isDemo: boolean }) {
   }, [isDemo])
 
   return (
-    <aside className="flex w-80 shrink-0 flex-col overflow-hidden border-r border-border-subtle bg-surface-base">
+    <aside className="flex w-80 h-full flex-col overflow-hidden border-r border-border-subtle bg-surface-base">
       <div className="shrink-0 border-b border-border-subtle px-5 py-4">
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-text-muted">
-          Alertas activas
-        </p>
-        <h2 className="mt-0.5 text-base font-semibold text-text-primary">
-          Panel de riesgo
-        </h2>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-text-muted">
+              Alertas activas
+            </p>
+            <h2 className="mt-0.5 text-base font-semibold text-text-primary">
+              Panel de riesgo
+            </h2>
+          </div>
+          <button
+            onClick={onCollapse}
+            aria-label="Colapsar panel"
+            className="size-7 rounded-md flex items-center justify-center text-text-muted hover:bg-surface-raised hover:text-text-primary transition-colors"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18l-6-6 6-6"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">

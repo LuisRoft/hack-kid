@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { MessageCircleIcon, SendIcon, SparklesIcon, XIcon } from 'lucide-react'
+import { SendIcon, SparklesIcon, XIcon } from 'lucide-react'
 import { ChatMessages } from '@/components/chat/chat-messages'
 import {
   ChatToolbar,
@@ -124,36 +124,7 @@ export function ChatWidget({ open, onOpenChange }: { open: boolean; onOpenChange
   const reversed = [...messages].reverse()
 
   return (
-    <>
-      {/* Tab trigger — siempre visible, actúa como toggle y se desplaza con el panel */}
-      <button
-        aria-label={open ? 'Cerrar asistente Hermes IA' : 'Abrir asistente Hermes IA'}
-        onClick={() => handleOpenChange(!open)}
-        className="
-          fixed top-1/2 -translate-y-1/2 z-50
-          flex flex-col items-center gap-2
-          bg-brand text-white
-          px-2.5 py-5
-          rounded-l-xl
-          shadow-lg shadow-brand/25
-          hover:bg-[#0a2d6e]
-          transition-[right,background-color] duration-300 ease-in-out
-          border-y border-l border-white/10
-          cursor-pointer
-        "
-        style={{ right: open ? 400 : 0 }}
-      >
-        <MessageCircleIcon className="size-[18px]" />
-        <span
-          className="text-[10px] font-semibold tracking-widest uppercase"
-          style={{ writingMode: 'vertical-lr', transform: 'rotate(180deg)' }}
-        >
-          Hermes IA
-        </span>
-      </button>
-
-      {/* Panel — renderizado dentro del contenedor del layout en AppShell */}
-      <div className="w-[400px] h-full flex flex-col border-l border-border bg-background">
+      <div className="w-[400px] h-full flex flex-col border-l border-border bg-background overflow-hidden">
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-border shrink-0">
           <div className="size-8 rounded-full bg-brand flex items-center justify-center shrink-0">
@@ -212,7 +183,6 @@ export function ChatWidget({ open, onOpenChange }: { open: boolean; onOpenChange
           </ChatToolbarAddon>
         </ChatToolbar>
       </div>
-    </>
   )
 }
 
