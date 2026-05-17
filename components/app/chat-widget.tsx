@@ -1,29 +1,8 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { MessageCircleIcon, SendIcon, SparklesIcon, XIcon } from 'lucide-react'
-import {
-  Sheet,
-  SheetContent,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet'
-import { Chat } from '@/components/chat/chat'
-import {
-  ChatHeader,
-  ChatHeaderAddon,
-  ChatHeaderAvatar,
-  ChatHeaderButton,
-  ChatHeaderMain,
-} from '@/components/chat/chat-header'
 import { ChatMessages } from '@/components/chat/chat-messages'
-import {
-  ChatEvent,
-  ChatEventAddon,
-  ChatEventAvatar,
-  ChatEventBody,
-  ChatEventContent,
-} from '@/components/chat/chat-event'
 import {
   ChatToolbar,
   ChatToolbarAddon,
@@ -44,8 +23,7 @@ function uid() {
   return Math.random().toString(36).slice(2, 10)
 }
 
-export function ChatWidget() {
-  const [open, setOpen] = useState(false)
+export function ChatWidget({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [sessionId, setSessionId] = useState<string | null>(null)
@@ -54,7 +32,7 @@ export function ChatWidget() {
 
   function handleOpenChange(next: boolean) {
     if (!next) abortRef.current?.abort()
-    setOpen(next)
+    onOpenChange(next)
   }
 
   async function sendMessage() {
@@ -143,148 +121,168 @@ export function ChatWidget() {
     }
   }
 
-  // ChatMessages usa flex-col-reverse: DOM en orden inverso para que
-  // el mensaje más nuevo quede visualmente abajo
   const reversed = [...messages].reverse()
 
   return (
-    <Sheet open={open} onOpenChange={handleOpenChange}>
-
-      {/* Trigger: tab pegado al borde derecho, centrado verticalmente */}
-      <SheetTrigger asChild>
-        <button
-          aria-label="Abrir asistente Hermes IA"
-          className="
-            fixed right-0 top-1/2 -translate-y-1/2 z-50
-            flex flex-col items-center gap-2
-            bg-brand text-white
-            px-2.5 py-5
-            rounded-l-xl
-            shadow-lg shadow-brand/25
-            hover:bg-[#0a2d6e]
-            transition-all duration-200
-            border-y border-l border-white/10
-          "
-        >
-          <MessageCircleIcon className="size-[18px]" />
-          <span
-            className="text-[10px] font-semibold tracking-widest uppercase"
-            style={{ writingMode: 'vertical-lr', transform: 'rotate(180deg)' }}
-          >
-            Hermes IA
-          </span>
-        </button>
-      </SheetTrigger>
-
-      {/* Panel lateral derecho */}
-      <SheetContent
-        side="right"
-        showCloseButton={false}
-        className="p-0 w-[400px] sm:max-w-[400px]"
+    <>
+      {/* Tab trigger — siempre visible, actúa como toggle y se desplaza con el panel */}
+      <button
+        aria-label={open ? 'Cerrar asistente Hermes IA' : 'Abrir asistente Hermes IA'}
+        onClick={() => handleOpenChange(!open)}
+        className="
+          fixed top-1/2 -translate-y-1/2 z-50
+          flex flex-col items-center gap-2
+          bg-brand text-white
+          px-2.5 py-5
+          rounded-l-xl
+          shadow-lg shadow-brand/25
+          hover:bg-[#0a2d6e]
+          transition-[right,background-color] duration-300 ease-in-out
+          border-y border-l border-white/10
+          cursor-pointer
+        "
+        style={{ right: open ? 400 : 0 }}
       >
-        {/* Título accesible oculto visualmente */}
-        <SheetTitle className="sr-only">Hermes IA — Asistente de riesgo vial</SheetTitle>
+        <MessageCircleIcon className="size-[18px]" />
+        <span
+          className="text-[10px] font-semibold tracking-widest uppercase"
+          style={{ writingMode: 'vertical-lr', transform: 'rotate(180deg)' }}
+        >
+          Hermes IA
+        </span>
+      </button>
 
-        <Chat className="h-full">
+      {/* Panel — renderizado dentro del contenedor del layout en AppShell */}
+      <div className="w-[400px] h-full flex flex-col border-l border-border bg-background">
+        {/* Header */}
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-border shrink-0">
+          <div className="size-8 rounded-full bg-brand flex items-center justify-center shrink-0">
+            <SparklesIcon className="size-4 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground leading-none">Hermes IA</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Asistente de riesgo vial</p>
+          </div>
+          <button
+            onClick={() => handleOpenChange(false)}
+            aria-label="Cerrar"
+            className="size-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            <XIcon className="size-4" />
+          </button>
+        </div>
 
-          {/* Header */}
-          <ChatHeader className="border-b px-3 py-2.5">
-            <ChatHeaderAddon>
-              <ChatHeaderAvatar
-                fallback="H"
-                className="bg-brand text-white text-xs font-bold"
-              />
-            </ChatHeaderAddon>
-            <ChatHeaderMain>
-              <div>
-                <p className="text-sm font-semibold leading-none">Hermes IA</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Asistente de riesgo vial
-                </p>
-              </div>
-            </ChatHeaderMain>
-            <ChatHeaderAddon>
-              <ChatHeaderButton
-                onClick={() => handleOpenChange(false)}
-                aria-label="Cerrar panel"
-              >
-                <XIcon />
-              </ChatHeaderButton>
-            </ChatHeaderAddon>
-          </ChatHeader>
-
-          {/* Estado vacío o mensajes */}
-          {messages.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center gap-3 p-8 text-center text-muted-foreground">
-              <div className="size-12 rounded-full bg-brand/8 flex items-center justify-center">
-                <SparklesIcon className="size-6 text-brand" />
-              </div>
-              <p className="text-sm font-semibold text-foreground">
-                ¿En qué puedo ayudarte?
-              </p>
-              <p className="text-xs leading-relaxed max-w-60">
-                Pregúntame sobre alertas activas, riesgos en corredores o planes de desvío en tiempo real.
-              </p>
+        {/* Área de mensajes */}
+        {messages.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center gap-3 p-8 text-center">
+            <div className="size-12 rounded-2xl bg-brand/8 flex items-center justify-center">
+              <SparklesIcon className="size-6 text-brand" />
             </div>
-          ) : (
-            <ChatMessages>
-              {reversed.map(msg => (
-                <ChatEvent
-                  key={msg.id}
-                  className="hover:bg-muted/40 rounded-md py-1"
-                >
-                  <ChatEventAddon>
-                    <ChatEventAvatar
-                      fallback={msg.role === 'user' ? 'T' : 'H'}
-                      className={
-                        msg.role === 'assistant'
-                          ? 'bg-brand text-white text-xs font-bold'
-                          : ''
-                      }
-                    />
-                  </ChatEventAddon>
-                  <ChatEventBody>
-                    <p className="text-sm font-semibold leading-none mb-1">
-                      {msg.role === 'user' ? 'Tú' : 'Hermes'}
-                    </p>
-                    <ChatEventContent>
-                      {msg.streaming && !msg.text ? (
-                        <span className="text-muted-foreground animate-pulse">
-                          Pensando…
-                        </span>
-                      ) : (
-                        msg.text
-                      )}
-                    </ChatEventContent>
-                  </ChatEventBody>
-                </ChatEvent>
-              ))}
-            </ChatMessages>
-          )}
+            <p className="text-sm font-semibold text-foreground">¿En qué puedo ayudarte?</p>
+            <p className="text-xs leading-relaxed text-muted-foreground max-w-60">
+              Pregúntame sobre alertas activas, riesgos en corredores o planes de desvío en tiempo real.
+            </p>
+          </div>
+        ) : (
+          <ChatMessages className="px-3 gap-2">
+            {reversed.map(msg => (
+              <MessageBubble key={msg.id} message={msg} />
+            ))}
+          </ChatMessages>
+        )}
 
-          {/* Input */}
-          <ChatToolbar>
-            <ChatToolbarTextarea
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onSubmit={sendMessage}
-              placeholder="Escribe un mensaje…"
-              disabled={busy}
-            />
-            <ChatToolbarAddon align="inline-end">
-              <ChatToolbarButton
-                onClick={sendMessage}
-                disabled={!input.trim() || busy}
-                aria-label="Enviar mensaje"
-                className={input.trim() && !busy ? 'text-brand hover:bg-brand/8' : ''}
-              >
-                <SendIcon />
-              </ChatToolbarButton>
-            </ChatToolbarAddon>
-          </ChatToolbar>
+        {/* Input */}
+        <ChatToolbar>
+          <ChatToolbarTextarea
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onSubmit={sendMessage}
+            placeholder="Escribe un mensaje…"
+            disabled={busy}
+          />
+          <ChatToolbarAddon align="inline-end">
+            <ChatToolbarButton
+              onClick={sendMessage}
+              disabled={!input.trim() || busy}
+              aria-label="Enviar mensaje"
+              className={input.trim() && !busy ? 'text-brand hover:bg-brand/8' : ''}
+            >
+              <SendIcon />
+            </ChatToolbarButton>
+          </ChatToolbarAddon>
+        </ChatToolbar>
+      </div>
+    </>
+  )
+}
 
-        </Chat>
-      </SheetContent>
-    </Sheet>
+// ── Typewriter ────────────────────────────────────────────────────────────────
+
+function TypewriterText({ text, active }: { text: string; active: boolean }) {
+  const [cursor, setCursor] = useState(0)
+
+  useEffect(() => {
+    setCursor(0)
+  }, [])
+
+  useEffect(() => {
+    if (cursor >= text.length) return
+    const id = setTimeout(() => setCursor(c => Math.min(c + 4, text.length)), 12)
+    return () => clearTimeout(id)
+  }, [cursor, text])
+
+  // When no longer streaming and cursor hasn't caught up yet, jump to end
+  useEffect(() => {
+    if (!active && cursor < text.length) setCursor(text.length)
+  }, [active, cursor, text.length])
+
+  return <>{text.slice(0, cursor)}</>
+}
+
+// ── Burbuja de mensaje ────────────────────────────────────────────────────────
+
+function MessageBubble({ message }: { message: Message }) {
+  const isUser = message.role === 'user'
+
+  return (
+    <div className={`flex items-end gap-2 ${isUser ? 'justify-start' : 'justify-end'}`}>
+
+      {/* Avatar usuario (izquierda) */}
+      {isUser && (
+        <div className="size-7 rounded-full bg-muted border border-border flex items-center justify-center text-[11px] font-semibold text-muted-foreground shrink-0 mb-0.5">
+          T
+        </div>
+      )}
+
+      {/* Burbuja */}
+      <div
+        className={[
+          'max-w-[78%] px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap break-words',
+          isUser
+            ? 'bg-muted text-foreground rounded-2xl rounded-bl-sm'
+            : 'bg-brand text-white rounded-2xl rounded-br-sm',
+        ].join(' ')}
+      >
+        {isUser ? (
+          message.text
+        ) : message.streaming && !message.text ? (
+          /* Indicador de typing antes de recibir el primer chunk */
+          <span className="flex gap-1 items-center py-0.5 px-1">
+            <span className="size-1.5 rounded-full bg-white/70 animate-bounce [animation-delay:0ms]" />
+            <span className="size-1.5 rounded-full bg-white/70 animate-bounce [animation-delay:160ms]" />
+            <span className="size-1.5 rounded-full bg-white/70 animate-bounce [animation-delay:320ms]" />
+          </span>
+        ) : (
+          <TypewriterText text={message.text} active={!!message.streaming} />
+        )}
+      </div>
+
+      {/* Avatar bot (derecha) */}
+      {!isUser && (
+        <div className="size-7 rounded-full bg-brand flex items-center justify-center text-[11px] font-bold text-white shrink-0 mb-0.5">
+          H
+        </div>
+      )}
+    </div>
   )
 }

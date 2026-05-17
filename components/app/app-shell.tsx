@@ -22,6 +22,7 @@ const SCENARIOS: { id: ScenarioMode; label: string }[] = [
 export function AppShell() {
   const [view, setView] = useState<MapView>('logistics')
   const [scenario, setScenario] = useState<ScenarioMode>('current')
+  const [chatOpen, setChatOpen] = useState(false)
   const isDemo = scenario === 'demo'
 
   return (
@@ -85,16 +86,22 @@ export function AppShell() {
         </div>
       </header>
 
-      {/* Content: sidebar + map */}
+      {/* Content: sidebar + map + chat */}
       <div style={{ display: 'flex', overflow: 'hidden', minHeight: 0 }}>
         {view === 'logistics' && <AlertsPanel key={scenario} isDemo={isDemo} />}
 
         <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
           <RiskMap key={scenario} view={view} isDemo={isDemo} />
         </div>
-      </div>
 
-      <ChatWidget />
+        {/* Chat panel — empuja el mapa, no lo tapa */}
+        <div
+          className="overflow-hidden shrink-0 flex flex-col transition-[width] duration-300 ease-in-out"
+          style={{ width: chatOpen ? 400 : 0 }}
+        >
+          <ChatWidget open={chatOpen} onOpenChange={setChatOpen} />
+        </div>
+      </div>
     </div>
   )
 }

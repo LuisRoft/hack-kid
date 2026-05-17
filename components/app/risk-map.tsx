@@ -72,8 +72,12 @@ export function RiskMap({ view, isDemo }: { view: MapView; isDemo: boolean }) {
 
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'bottom-right')
 
-    // Fuerza resize cuando el container tenga dimensiones reales
-    const observer = new ResizeObserver(() => map.resize())
+    // Resize solo al final de cada frame para no redrawn en cada tick de la animación CSS
+    let resizeFrame = 0
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(resizeFrame)
+      resizeFrame = requestAnimationFrame(() => map.resize())
+    })
     observer.observe(containerRef.current)
 
     const popup = new mapboxgl.Popup({ closeButton: false, maxWidth: '300px' })
@@ -186,6 +190,7 @@ export function RiskMap({ view, isDemo }: { view: MapView; isDemo: boolean }) {
       }
 
       // Aplicar vista inicial y marcar mapa como listo
+      if (abortCtrl.signal.aborted) return
       applyView(map, viewRef.current)
       loadedRef.current = true
 
@@ -233,6 +238,7 @@ export function RiskMap({ view, isDemo }: { view: MapView; isDemo: boolean }) {
     })
 
     return () => {
+      cancelAnimationFrame(resizeFrame)
       observer.disconnect()
       abortCtrl.abort()
       loadedRef.current = false
