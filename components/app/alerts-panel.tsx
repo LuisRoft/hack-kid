@@ -46,14 +46,19 @@ function timeAgo(iso: string): string {
   return `hace ${Math.floor(hrs / 24)}d`
 }
 
-export function AlertsPanel() {
+function alertKey(alert: Alert, isDemo: boolean): string {
+  const scenario = isDemo ? 'demo' : 'current'
+  return `${scenario}-${alert.corridor_name}-${alert.horizon_hours}`
+}
+
+export function AlertsPanel({ isDemo }: { isDemo: boolean }) {
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
   useEffect(() => {
     let cancelled = false
-    fetch(`${API}/alerts?is_demo=true`)
+    fetch(`${API}/alerts?is_demo=${isDemo}`)
       .then((r) => {
         if (!r.ok) throw new Error(r.statusText)
         return r.json()
@@ -68,7 +73,7 @@ export function AlertsPanel() {
         if (!cancelled) setLoading(false)
       })
     return () => { cancelled = true }
-  }, [])
+  }, [isDemo])
 
   return (
     <aside className="flex w-80 shrink-0 flex-col overflow-hidden border-r border-border-subtle bg-surface-base">
@@ -105,7 +110,7 @@ export function AlertsPanel() {
 
               return (
                 <li
-                  key={alert.id}
+                  key={alertKey(alert, isDemo)}
                   className="border-b border-border-subtle px-5 py-4 transition-colors hover:bg-surface-raised"
                 >
                   <div className="flex items-start justify-between gap-3">

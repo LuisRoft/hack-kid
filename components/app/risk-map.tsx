@@ -16,7 +16,7 @@ const RISK_LABELS: Record<string, string> = {
   critical: 'Crítico',
 }
 
-const LOGISTICS_LAYERS = ['corridors-line', 'rerouting-line'] as const
+const LOGISTICS_LAYERS = ['corridors-line', 'risk-segments-line', 'rerouting-line'] as const
 const HEALTH_LAYERS = ['municipalities-fill', 'municipalities-border'] as const
 
 function applyView(map: mapboxgl.Map, view: MapView) {
@@ -44,7 +44,7 @@ interface Municipality {
   }
 }
 
-export function RiskMap({ view }: { view: MapView }) {
+export function RiskMap({ view, isDemo }: { view: MapView; isDemo: boolean }) {
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const loadedRef = useRef(false)
@@ -80,10 +80,10 @@ export function RiskMap({ view }: { view: MapView }) {
     const abortCtrl = new AbortController()
 
     map.on('load', async () => {
-      // ── Corredores ────────────────────────────────────────────────
+      // ── Red monitoreada base ──────────────────────────────────────
       map.addSource('corridors', {
         type: 'geojson',
-        data: `${API}/map/corridors?is_demo=true`,
+        data: `${API}/map/corridors?is_demo=${isDemo}`,
       })
       map.addLayer({
         id: 'corridors-line',
@@ -91,15 +91,33 @@ export function RiskMap({ view }: { view: MapView }) {
         source: 'corridors',
         layout: { 'line-cap': 'round', 'line-join': 'round' },
         paint: {
-          'line-color': ['get', 'risk_color'],
-          'line-width': 4,
+          'line-color': ['coalesce', ['get', 'risk_color'], '#64748b'],
+          'line-width': 3,
+          'line-opacity': 0.62,
+        },
+      })
+
+      // ── Tramos afectados ──────────────────────────────────────────
+      map.addSource('risk-segments', {
+        type: 'geojson',
+        data: `${API}/map/risk-segments?is_demo=${isDemo}`,
+      })
+      map.addLayer({
+        id: 'risk-segments-line',
+        type: 'line',
+        source: 'risk-segments',
+        layout: { 'line-cap': 'round', 'line-join': 'round' },
+        paint: {
+          'line-color': ['coalesce', ['get', 'risk_color'], '#f97316'],
+          'line-width': 6,
+          'line-opacity': 0.92,
         },
       })
 
       // ── Rutas alternas ────────────────────────────────────────────
       map.addSource('rerouting', {
         type: 'geojson',
-        data: `${API}/map/rerouting-plans?is_demo=true`,
+        data: `${API}/map/rerouting-plans?is_demo=${isDemo}`,
       })
       map.addLayer({
         id: 'rerouting-line',
@@ -115,7 +133,9 @@ export function RiskMap({ view }: { view: MapView }) {
 
       // ── Municipios (fetch + transform a FeatureCollection) ────────
       try {
-        const res = await fetch(`${API}/municipalities`, { signal: abortCtrl.signal })
+        const res = await fetch(`${API}/municipalities?is_demo=${isDemo}`, {
+          signal: abortCtrl.signal,
+        })
         const items: Municipality[] = await res.json()
 
         const geojson: GeoJSON.FeatureCollection = {
@@ -169,7 +189,7 @@ export function RiskMap({ view }: { view: MapView }) {
       applyView(map, viewRef.current)
       loadedRef.current = true
 
-      // ── Popups: Corredores ────────────────────────────────────────
+      // ── Popups: Red base ──────────────────────────────────────────
       map.on('mouseenter', 'corridors-line', () => {
         map.getCanvas().style.cursor = 'pointer'
       })
@@ -181,6 +201,20 @@ export function RiskMap({ view }: { view: MapView }) {
         if (!e.features?.length) return
         const p = e.features[0].properties as Record<string, unknown>
         popup.setLngLat(e.lngLat).setHTML(corridorPopupHTML(p)).addTo(map)
+      })
+
+      // ── Popups: Tramos afectados ──────────────────────────────────
+      map.on('mouseenter', 'risk-segments-line', () => {
+        map.getCanvas().style.cursor = 'pointer'
+      })
+      map.on('mouseleave', 'risk-segments-line', () => {
+        map.getCanvas().style.cursor = ''
+        popup.remove()
+      })
+      map.on('mousemove', 'risk-segments-line', (e) => {
+        if (!e.features?.length) return
+        const p = e.features[0].properties as Record<string, unknown>
+        popup.setLngLat(e.lngLat).setHTML(riskSegmentPopupHTML(p)).addTo(map)
       })
 
       // ── Popups: Municipios ────────────────────────────────────────
@@ -204,23 +238,36 @@ export function RiskMap({ view }: { view: MapView }) {
       loadedRef.current = false
       map.remove()
     }
-  }, [])
+  }, [isDemo])
 
   return <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
 }
 
 function corridorPopupHTML(p: Record<string, unknown>): string {
-  const risk = String(p.risk_level ?? '')
-  const color = String(p.risk_color ?? '#555')
-  const prob = Math.round(Number(p.probability ?? 0) * 100)
+  const risk = String(p.peak_risk_level ?? p.risk_level ?? 'none')
+  const color = String(p.peak_risk_color ?? p.risk_color ?? '#64748b')
   const impact = Number(p.population_impact ?? 0).toLocaleString('es-EC')
   return `
     <div style="font-size:13px;line-height:1.6;padding:2px 0">
       <p style="font-weight:600;margin:0 0 6px;font-size:14px">${p.name}</p>
+      <p style="margin:0;color:#555">Red monitoreada base</p>
+      <p style="margin:0;color:#555">Peor riesgo: <strong style="color:${color}">${RISK_LABELS[risk] ?? risk}</strong></p>
+      <p style="margin:0;color:#555">Impacto: <strong>${impact} hab.</strong></p>
+    </div>
+  `
+}
+
+function riskSegmentPopupHTML(p: Record<string, unknown>): string {
+  const risk = String(p.risk_level ?? '')
+  const color = String(p.risk_color ?? '#f97316')
+  const prob = Math.round(Number(p.probability ?? 0) * 100)
+  return `
+    <div style="font-size:13px;line-height:1.6;padding:2px 0">
+      <p style="font-weight:600;margin:0 0 6px;font-size:14px">${p.corridor_name ?? p.name ?? 'Tramo afectado'}</p>
       <p style="margin:0;color:#555">Riesgo: <strong style="color:${color}">${RISK_LABELS[risk] ?? risk}</strong></p>
       <p style="margin:0;color:#555">Probabilidad: <strong>${prob}%</strong></p>
       <p style="margin:0;color:#555">Horizonte: <strong>${p.horizon_hours}h</strong></p>
-      <p style="margin:0;color:#555">Impacto: <strong>${impact} hab.</strong></p>
+      <p style="margin:0;color:#555">Segmento: <strong>${p.segment_index ?? '-'}</strong></p>
     </div>
   `
 }
