@@ -3,6 +3,7 @@ import { clerkAppearance } from '@/lib/clerk-appearance';
 import type { Metadata } from 'next';
 import { DM_Sans, Encode_Sans_Condensed } from 'next/font/google';
 import './globals.css';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 const innovator = DM_Sans({
   variable: '--font-innovator',
