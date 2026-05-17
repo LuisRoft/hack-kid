@@ -287,7 +287,7 @@ export interface ChatToolbarAttachmentProps extends React.ComponentProps<"div"> 
  *   {files.map((file, i) => (
  *     <ChatToolbarAttachment
  *       key={i}
- *       file={file}
+ *       fileName={file.name}
  *       onRemove={() => removeFile(i)}
  *     />
  *   ))}
