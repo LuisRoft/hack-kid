@@ -69,11 +69,18 @@ export function RiskMap({ view, isDemo }: { view: MapView; isDemo: boolean }) {
       zoom: 6.2,
     })
     mapRef.current = map
+    const canvas = map.getCanvas()
 
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'bottom-right')
 
-    // Fuerza resize cuando el container tenga dimensiones reales
-    const observer = new ResizeObserver(() => map.resize())
+    // Cuando la ventana cambia de tamaño, actualizar el viewport GL.
+    // Debounce de 50ms para no hacer resize en cada pixel del drag.
+    let stableTimer: ReturnType<typeof setTimeout>
+
+    const observer = new ResizeObserver(() => {
+      clearTimeout(stableTimer)
+      stableTimer = setTimeout(() => map.resize(), 50)
+    })
     observer.observe(containerRef.current)
 
     const popup = new mapboxgl.Popup({ closeButton: false, maxWidth: '300px' })
@@ -186,8 +193,39 @@ export function RiskMap({ view, isDemo }: { view: MapView; isDemo: boolean }) {
       }
 
       // Aplicar vista inicial y marcar mapa como listo
+      if (abortCtrl.signal.aborted) return
       applyView(map, viewRef.current)
       loadedRef.current = true
+
+      // Sincronizar el color de fondo al container Y al canvas para que el
+      // buffer GL al borrarse (resize final) no deje ver el blanco del body.
+      try {
+        const bgLayer = map.getStyle()?.layers?.find(
+          (l) => l.type === 'background'
+        ) as { id: string; paint?: Record<string, unknown> } | undefined
+
+        let bgColor: string | undefined
+
+        if (bgLayer) {
+          // getPaintProperty devuelve el valor computado actual (más fiable)
+          try {
+            const val = map.getPaintProperty(bgLayer.id, 'background-color')
+            if (typeof val === 'string') bgColor = val
+          } catch {}
+
+          // Fallback: leer directamente del spec del estilo
+          if (!bgColor) {
+            const raw = bgLayer.paint?.['background-color']
+            if (typeof raw === 'string') bgColor = raw
+          }
+        }
+
+        const bg = bgColor ?? '#0e1923'
+        if (containerRef.current) containerRef.current.style.backgroundColor = bg
+        canvas.style.backgroundColor = bg
+      } catch {
+        canvas.style.backgroundColor = '#0e1923'
+      }
 
       // ── Popups: Red base ──────────────────────────────────────────
       map.on('mouseenter', 'corridors-line', () => {
@@ -233,6 +271,7 @@ export function RiskMap({ view, isDemo }: { view: MapView; isDemo: boolean }) {
     })
 
     return () => {
+      clearTimeout(stableTimer)
       observer.disconnect()
       abortCtrl.abort()
       loadedRef.current = false
@@ -240,7 +279,7 @@ export function RiskMap({ view, isDemo }: { view: MapView; isDemo: boolean }) {
     }
   }, [isDemo])
 
-  return <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
+  return <div ref={containerRef} style={{ position: 'absolute', inset: 0, backgroundColor: '#0e1923' }} />
 }
 
 function corridorPopupHTML(p: Record<string, unknown>): string {
