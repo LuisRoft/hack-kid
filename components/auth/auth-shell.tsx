@@ -1,4 +1,5 @@
 import { AuthArt } from '@/components/auth/auth-art';
+import { AppBrandLink } from '@/components/brand/app-brand-link';
 import { ClerkCaptcha } from '@/components/auth/clerk-captcha';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
@@ -20,18 +21,12 @@ export function AuthShell({
     <div className='auth-shell flex h-full max-h-dvh flex-col overflow-hidden bg-surface-base text-text-primary'>
       <header className='auth-shell__header shrink-0 border-b border-border-subtle/60'>
         <div className='mx-auto flex h-(--header-height) max-w-7xl items-center justify-between px-6 lg:px-10'>
-          <Link
-            href='/'
-            className='text-2xl font-semibold leading-none tracking-normal text-text-primary'
-            aria-label='Nimbus home'
-          >
-            Nimbus
-          </Link>
+          <AppBrandLink />
           <Link
             href='/'
             className='text-sm text-text-muted transition-colors hover:text-text-primary'
           >
-            Back to home
+            Volver al inicio
           </Link>
         </div>
       </header>

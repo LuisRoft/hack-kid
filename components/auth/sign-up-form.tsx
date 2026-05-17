@@ -99,7 +99,7 @@ export function SignUpForm() {
   return (
     <AuthShell
       title='Create your account'
-      description='Crea tu cuenta para acceder a inteligencia de cascadas para gobierno, logística o salud.'
+      description='Crea tu cuenta para guardar tu perfil ciudadano y recibir planes personalizados ante lluvia y deslaves.'
       footer={
         <>
           Already have an account?{' '}

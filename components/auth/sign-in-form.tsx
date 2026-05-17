@@ -101,7 +101,7 @@ export function SignInForm() {
   return (
     <AuthShell
       title='Welcome back'
-      description='Accede a tu dashboard de alertas tempranas y cascadas del Fenómeno del Niño.'
+      description='Accede a tu mapa ciudadano y a Hermes para convertir alertas en un plan familiar.'
       footer={
         <>
           Don&apos;t have an account?{' '}

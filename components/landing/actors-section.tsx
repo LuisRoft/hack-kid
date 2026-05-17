@@ -2,19 +2,19 @@ import { SectionHeading } from '@/components/landing/section-heading';
 
 const audiences = [
   {
-    role: 'Gobierno',
-    headline: 'Actúa donde más duele',
-    body: 'Prioriza corredores críticos y despliega equipos antes del cierre, no cuando la vía ya cayó.',
+    role: 'Tu zona',
+    headline: 'Ve el riesgo donde vives',
+    body: 'Capas de lluvia, zonas en riesgo y deslaves recientes muestran si el problema se acerca a tu ubicación.',
   },
   {
-    role: 'Logística',
-    headline: 'Tu flota no se queda atrapada',
-    body: 'Rerutea con tiempo, protege entregas y evita días de operación perdida por un cierre sorpresa.',
+    role: 'Tu familia',
+    headline: 'Recibe acciones según tu contexto',
+    body: 'Hermes ajusta el plan si hay niños, adultos mayores, condiciones médicas, vehículo o refugio alterno.',
   },
   {
-    role: 'Salud',
-    headline: 'Llega antes del colapso',
-    body: 'Preposiciona insumos en los municipios correctos mientras todavía hay camino para moverlos.',
+    role: 'Tu entorno',
+    headline: 'Encuentra puntos útiles cercanos',
+    body: 'Hospitales, farmacias y supermercados aparecen en el mapa; la ayuda temporal se resuelve desde el agente.',
   },
 ];
 
@@ -28,8 +28,8 @@ export function ActorsSection() {
       <div className='mx-auto max-w-7xl px-6 py-16 lg:px-10 lg:py-20'>
         <SectionHeading
           eyebrow='Para quién'
-          title='Hecho para equipos que no pueden improvisar'
-          description='Cada vista está pensada para el rol que toma la decisión — sin ruido, sin pantallas genéricas.'
+          title='Hecho para ciudadanos que necesitan actuar, no interpretar datos.'
+          description='La experiencia parte de tu ubicación y convierte el riesgo en decisiones familiares concretas.'
         />
 
         <ul className='mt-12 grid list-none gap-6 p-0 lg:grid-cols-3'>

@@ -1,43 +1,174 @@
-'use client'
+'use client';
 
-import React, { useEffect, useState } from 'react'
-import { UserButton } from '@clerk/nextjs'
-import Link from 'next/link'
-import { MessageCircleIcon } from 'lucide-react'
-import { AlertsPanel } from '@/components/app/alerts-panel'
-import { ChatWidget } from '@/components/app/chat-widget'
-import { RiskMap, type MapView } from '@/components/app/risk-map'
+import { UserButton } from '@clerk/nextjs';
+import { AppBrandLink } from '@/components/brand/app-brand-link';
+import { useEffect, useState } from 'react';
+import { AlertsPanel } from '@/components/app/alerts-panel';
+import {
+  RiskMap,
+  type MapLayerId,
+  type MapLayerState,
+  type RiskHorizon,
+} from '@/components/app/risk-map';
+import { CitizenProfileSettings } from '@/components/onboarding/citizen-profile-settings';
 
-type ScenarioMode = 'demo' | 'current'
+type ScenarioMode = 'current' | 'demo';
+type MapViewMode = 'predictive' | 'realtime';
 
-const VIEWS: { id: MapView; label: string }[] = [
-  { id: 'logistics', label: 'Logística' },
-  { id: 'health', label: 'Salud' },
-]
-
-const SCENARIOS: { id: ScenarioMode; label: string }[] = [
-  { id: 'demo', label: 'Histórico 2023' },
+const DATA_MODES: { id: ScenarioMode; label: string }[] = [
   { id: 'current', label: 'Actual' },
-]
+  { id: 'demo', label: 'Histórico 2023' },
+];
+
+const VIEW_MODES: { id: MapViewMode; label: string }[] = [
+  { id: 'predictive', label: 'Predictivo' },
+  { id: 'realtime', label: 'Tiempo real' },
+];
+
+const HORIZONS: RiskHorizon[] = [24, 48, 72];
+
+const PREDICTIVE_LAYERS: MapLayerState = {
+  zones: true,
+  rain: false,
+  landslideRisk: true,
+  landslideReports: false,
+  resources: false,
+  corridors: true,
+};
+
+const REALTIME_LAYERS: MapLayerState = {
+  zones: false,
+  rain: true,
+  landslideRisk: false,
+  landslideReports: true,
+  resources: true,
+  corridors: false,
+};
+
+const PREDICTIVE_LAYER_LABELS: {
+  id: MapLayerId;
+  label: string;
+  currentOnly?: boolean;
+}[] = [
+  { id: 'zones', label: 'Riesgo por zona', currentOnly: true },
+  { id: 'landslideRisk', label: 'Riesgo de deslave' },
+  { id: 'corridors', label: 'Red vial monitoreada' },
+];
+
+const REALTIME_LAYER_LABELS: { id: MapLayerId; label: string }[] = [
+  { id: 'rain', label: 'Lluvia ahora' },
+  { id: 'landslideReports', label: 'Deslaves reportados' },
+  { id: 'resources', label: 'Recursos cercanos' },
+];
+
+type LiveLayerStatus = {
+  alerts: number | null;
+  rain: number | null;
+  landslides: number | null;
+};
+
+const API = 'http://127.0.0.1:8000/api/v1';
+
+async function featureCount(url: string): Promise<number> {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(response.statusText);
+  const data = (await response.json()) as { features?: unknown[] };
+  return Array.isArray(data.features) ? data.features.length : 0;
+}
+
+async function itemCount(url: string): Promise<number> {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(response.statusText);
+  const data = (await response.json()) as unknown[];
+  return Array.isArray(data) ? data.length : 0;
+}
+
+function CitizenProfileIcon() {
+  return (
+    <svg
+      aria-hidden
+      viewBox='0 0 24 24'
+      className='h-4 w-4'
+      fill='none'
+      stroke='currentColor'
+      strokeWidth='1.8'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    >
+      <path d='M3 10.5 12 3l9 7.5' />
+      <path d='M5.5 9.5V21h13V9.5' />
+      <path d='M9 21v-6h6v6' />
+      <path d='M9 12h.01' />
+      <path d='M15 12h.01' />
+    </svg>
+  );
+}
 
 export function AppShell() {
-  const [view, setView] = useState<MapView>('logistics')
-  const [scenario, setScenario] = useState<ScenarioMode>('current')
-  const [chatOpen, setChatOpen] = useState(false)
-  const [alertsOpen, setAlertsOpen] = useState(true)
-  const isDemo = scenario === 'demo'
+  const [scenario, setScenario] = useState<ScenarioMode>('current');
+  const [viewMode, setViewMode] = useState<MapViewMode>('predictive');
+  const [horizon, setHorizon] = useState<RiskHorizon>(24);
+  const [layers, setLayers] = useState<MapLayerState>(PREDICTIVE_LAYERS);
+  const [liveStatus, setLiveStatus] = useState<LiveLayerStatus>({
+    alerts: null,
+    rain: null,
+    landslides: null,
+  });
+  const [selectedCorridorName, setSelectedCorridorName] = useState<
+    string | null
+  >(null);
+  const isDemo = scenario === 'demo';
+  const isPredictive = viewMode === 'predictive';
+  const visibleLayerLabels = isPredictive
+    ? PREDICTIVE_LAYER_LABELS
+    : REALTIME_LAYER_LABELS;
+  const effectiveLayers: MapLayerState = isDemo
+    ? {
+        ...layers,
+        zones: false,
+        rain: false,
+        landslideReports: false,
+        resources: false,
+      }
+    : layers;
+
+  function toggleLayer(layer: MapLayerId) {
+    setLayers((current) => ({ ...current, [layer]: !current[layer] }));
+  }
+
+  function changeViewMode(nextViewMode: MapViewMode) {
+    if (isDemo && nextViewMode === 'realtime') return;
+    setViewMode(nextViewMode);
+    setLayers(nextViewMode === 'predictive' ? PREDICTIVE_LAYERS : REALTIME_LAYERS);
+  }
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (isDemo) {
+      return;
+    }
+
+    Promise.allSettled([
+      itemCount(`${API}/alerts?is_demo=false`),
+      featureCount(`${API}/map/rain/realtime?within_minutes=360`),
+      featureCount(`${API}/map/landslides/realtime?hours=24`),
+    ]).then(([alerts, rain, landslides]) => {
+      if (cancelled) return;
+      setLiveStatus({
+        alerts: alerts.status === 'fulfilled' ? alerts.value : null,
+        rain: rain.status === 'fulfilled' ? rain.value : null,
+        landslides:
+          landslides.status === 'fulfilled' ? landslides.value : null,
+      });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isDemo]);
 
   // Shortcuts: [ = toggle alertas, ] = toggle chat
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      const target = e.target as HTMLElement
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return
-      if (e.key === '[') setAlertsOpen(v => !v)
-      if (e.key === ']') setChatOpen(v => !v)
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [])
 
   return (
     <div
@@ -49,39 +180,24 @@ export function AppShell() {
       }}
     >
       {/* Header */}
-      <header className="border-b border-border-subtle/60 bg-surface-base">
-        <div className="flex items-center justify-between px-6 py-4 lg:px-8">
-          <div className="flex items-center gap-5">
-            <Link
-              href="/app"
-              className="text-xl font-semibold leading-none text-text-primary"
-            >
-              Nimbus
-            </Link>
+      <header className='border-b border-border-subtle/60 bg-surface-base'>
+        <div className='flex items-center justify-between px-6 py-4 lg:px-8'>
+          <div className='flex items-center gap-5'>
+            <AppBrandLink href='/app' />
 
-            <div className="flex overflow-hidden rounded-md border border-border-subtle">
-              {VIEWS.map((v, i) => (
-                <button
-                  key={v.id}
-                  onClick={() => setView(v.id)}
-                  className={[
-                    'px-4 py-1.5 text-sm font-medium transition-colors',
-                    i > 0 ? 'border-l border-border-subtle' : '',
-                    view === v.id
-                      ? 'bg-brand text-text-secondary'
-                      : 'text-text-muted hover:bg-surface-raised hover:text-text-primary',
-                  ].join(' ')}
-                >
-                  {v.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex overflow-hidden rounded-md border border-border-subtle">
-              {SCENARIOS.map((s, i) => (
+            <div className='flex items-center gap-3'>
+              <div className='flex overflow-hidden rounded-md border border-border-subtle'>
+              {DATA_MODES.map((s, i) => (
                 <button
                   key={s.id}
-                  onClick={() => setScenario(s.id)}
+                  onClick={() => {
+                    setScenario(s.id);
+                    if (s.id === 'demo') {
+                      setViewMode('predictive');
+                      setLayers(PREDICTIVE_LAYERS);
+                    }
+                    setSelectedCorridorName(null);
+                  }}
                   className={[
                     'px-4 py-1.5 text-sm font-medium transition-colors',
                     i > 0 ? 'border-l border-border-subtle' : '',
@@ -93,80 +209,208 @@ export function AppShell() {
                   {s.label}
                 </button>
               ))}
+              </div>
+
+              <div className='flex overflow-hidden rounded-md border border-border-subtle'>
+                {VIEW_MODES.map((mode, index) => {
+                  const disabled = isDemo && mode.id === 'realtime';
+
+                  return (
+                    <button
+                      key={mode.id}
+                      type='button'
+                      disabled={disabled}
+                      onClick={() => changeViewMode(mode.id)}
+                      className={[
+                        'px-4 py-1.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-45',
+                        index > 0 ? 'border-l border-border-subtle' : '',
+                        viewMode === mode.id
+                          ? 'bg-brand text-text-secondary'
+                          : 'text-text-muted hover:bg-surface-raised hover:text-text-primary',
+                      ].join(' ')}
+                    >
+                      {mode.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
-          <UserButton />
+          <UserButton>
+            <UserButton.UserProfilePage
+              label='Perfil ciudadano'
+              url='citizen-profile'
+              labelIcon={<CitizenProfileIcon />}
+            >
+              <CitizenProfileSettings />
+            </UserButton.UserProfilePage>
+          </UserButton>
         </div>
       </header>
 
-      {/* Botón toggle del chat */}
-      <button
-        aria-label={chatOpen ? 'Cerrar asistente Hermes IA' : 'Abrir asistente Hermes IA'}
-        onClick={() => setChatOpen(v => !v)}
-        className="fixed top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-2 bg-brand text-white px-2.5 py-5 rounded-l-xl shadow-lg shadow-brand/25 hover:bg-[#0a2d6e] transition-[right,background-color] duration-300 ease-in-out border-y border-l border-white/10 cursor-pointer"
-        style={{ right: chatOpen ? 400 : 0 }}
-      >
-        <MessageCircleIcon className="size-[18px]" />
-        <span className="text-[10px] font-semibold tracking-widest uppercase" style={{ writingMode: 'vertical-lr', transform: 'rotate(180deg)' }}>
-          Hermes IA
-        </span>
-      </button>
+{/* Content: sidebar + map */}
+      <div style={{ display: 'flex', overflow: 'hidden', minHeight: 0 }}>
+        <AlertsPanel
+          key={scenario}
+          isDemo={isDemo}
+          selectedCorridorName={selectedCorridorName}
+          onSelectAlert={setSelectedCorridorName}
+        />
 
-      {/* Área de contenido: mapa siempre al 100%, paneles encima */}
-      <div style={{ position: 'relative', overflow: 'hidden', minHeight: 0 }}>
+        <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
+          <RiskMap
+            key={`${scenario}-${horizon}`}
+            isDemo={isDemo}
+            horizon={horizon}
+            layers={effectiveLayers}
+            selectedCorridorName={selectedCorridorName}
+          />
 
-        {/* Mapa — ocupa toda el área, nunca cambia de tamaño por los paneles */}
-        <RiskMap key={scenario} view={view} isDemo={isDemo} />
+          <div className='pointer-events-none absolute left-4 top-4 z-10 flex max-w-[calc(100%-2rem)] flex-col gap-3'>
+            {isPredictive ? (
+              <div className='pointer-events-auto w-fit rounded-md border border-border-subtle bg-surface-base/95 p-2 shadow-sm backdrop-blur'>
+                <p className='px-1 pb-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-text-muted'>
+                  Riesgo esperado
+                </p>
+                <div className='flex overflow-hidden rounded-[var(--radius-xs)] border border-border-subtle'>
+                  {HORIZONS.map((item, index) => (
+                    <button
+                      key={item}
+                      type='button'
+                      onClick={() => setHorizon(item)}
+                      className={[
+                        'px-3 py-1 text-xs font-medium transition-colors',
+                        index > 0 ? 'border-l border-border-subtle' : '',
+                        horizon === item
+                          ? 'bg-brand text-text-secondary'
+                          : 'text-text-muted hover:bg-surface-raised hover:text-text-primary',
+                      ].join(' ')}
+                    >
+                      {item}h
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className='pointer-events-auto w-fit rounded-md border border-border-subtle bg-surface-base/95 px-3 py-2 text-xs shadow-sm backdrop-blur'>
+                <p className='font-medium text-text-primary'>Condiciones reportadas ahora</p>
+                <p className='mt-0.5 text-text-muted'>Lluvia reciente, eventos y recursos cercanos.</p>
+              </div>
+            )}
 
-        {/* Panel de alertas — desliza desde la izquierda sobre el mapa */}
-        {view === 'logistics' && (
-          <div
-            className="absolute top-0 left-0 h-full z-10 transition-transform duration-300 ease-in-out"
-            style={{ width: 320, transform: alertsOpen ? 'translateX(0)' : 'translateX(-100%)' }}
-          >
-            <AlertsPanel key={scenario} isDemo={isDemo} onCollapse={() => setAlertsOpen(false)} />
+            <div className='pointer-events-auto w-52 rounded-md border border-border-subtle bg-surface-base/95 p-2 shadow-sm backdrop-blur'>
+              <p className='px-1 pb-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-text-muted'>
+                {isPredictive ? 'Capas predictivas' : 'Capas en tiempo real'}
+              </p>
+              <div className='grid gap-1'>
+                {visibleLayerLabels.map((item) => {
+                  const disabled =
+                    isDemo && 'currentOnly' in item && item.currentOnly === true;
+                  const checked = effectiveLayers[item.id];
+
+                  return (
+                    <label
+                      key={item.id}
+                      className={[
+                        'flex items-center gap-2 rounded-[var(--radius-xs)] px-2 py-1.5 text-xs transition-colors',
+                        disabled
+                          ? 'cursor-not-allowed text-text-muted/60'
+                          : 'cursor-pointer text-text-primary hover:bg-surface-raised',
+                      ].join(' ')}
+                    >
+                      <input
+                        type='checkbox'
+                        checked={checked}
+                        disabled={disabled}
+                        onChange={() => toggleLayer(item.id)}
+                        className='accent-brand'
+                      />
+                      {item.label}
+                    </label>
+                  );
+                })}
+              </div>
+              {isDemo ? (
+                <p className='mt-2 px-1 text-[11px] leading-4 text-text-muted'>
+                  Histórico 2023 usa corredores, tramos de riesgo y alertas demo.
+                </p>
+              ) : null}
+            </div>
+
+            <div className='pointer-events-auto w-64 rounded-md border border-border-subtle bg-surface-base/95 p-3 shadow-sm backdrop-blur'>
+              <p className='text-[11px] font-medium uppercase tracking-[0.14em] text-text-muted'>
+                Lectura del mapa
+              </p>
+              <div className='mt-2 space-y-2 text-xs leading-5 text-text-muted'>
+                {isPredictive ? (
+                  <>
+                    <p>
+                      <span className='font-medium text-text-primary'>
+                        Riesgo por zona:
+                      </span>{' '}
+                      cantones/parroquias con score para las próximas {horizon}h.
+                    </p>
+                    <p>
+                      <span className='font-medium text-text-primary'>
+                        Riesgo de deslave:
+                      </span>{' '}
+                      tramos de carretera coloreados por probabilidad.
+                    </p>
+                    {!isDemo && liveStatus.alerts === 0 ? (
+                      <p>No hay alertas oficiales activas de corredores.</p>
+                    ) : null}
+                  </>
+                ) : (
+                  <>
+                    <p>
+                      <span className='font-medium text-text-primary'>
+                        Tiempo real:
+                      </span>{' '}
+                      muestra lluvia reciente, deslaves reportados y recursos.
+                    </p>
+                    {!isDemo && liveStatus.rain === 0 ? (
+                      <p>No hay muestras recientes de lluvia para pintar heatmap.</p>
+                    ) : null}
+                    {!isDemo && liveStatus.landslides === 0 ? (
+                      <p>No hay deslaves recientes reportados en las últimas 24h.</p>
+                    ) : null}
+                  </>
+                )}
+              </div>
+
+              <div className='mt-3 grid gap-1.5 text-[11px] text-text-muted'>
+                {isPredictive ? (
+                  <div className='flex items-center gap-2'>
+                    <span className='h-2.5 w-2.5 rounded-sm bg-[#7f1d1d]' />
+                    Crítico
+                    <span className='h-2.5 w-2.5 rounded-sm bg-[#ef4444]' />
+                    Alto
+                    <span className='h-2.5 w-2.5 rounded-sm bg-[#f97316]' />
+                    Moderado
+                  </div>
+                ) : (
+                  <div className='flex items-center gap-2'>
+                    <span className='flex h-4 w-4 items-center justify-center rounded-full bg-[#dc2626] text-[9px] font-semibold text-white'>
+                      H
+                    </span>
+                    hospital
+                    <span className='flex h-4 w-4 items-center justify-center rounded-full bg-[#16a34a] text-[8px] font-semibold text-white'>
+                      Rx
+                    </span>
+                    farmacia
+                    <span className='flex h-4 w-4 items-center justify-center rounded-full bg-[#2563eb] text-[9px] font-semibold text-white'>
+                      M
+                    </span>
+                    mercado
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-        )}
-
-        {/* Botón para expandir alertas cuando está colapsado */}
-        {view === 'logistics' && !alertsOpen && (
-          <button
-            onClick={() => setAlertsOpen(true)}
-            aria-label="Expandir panel de alertas"
-            className="
-              absolute left-0 top-1/2 -translate-y-1/2 z-10
-              flex flex-col items-center gap-2
-              bg-surface-base text-text-muted
-              px-2 py-4
-              rounded-r-xl
-              border border-l-0 border-border-subtle
-              hover:bg-surface-raised hover:text-text-primary
-              transition-colors duration-200
-              shadow-sm cursor-pointer
-            "
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 18l6-6-6-6"/>
-            </svg>
-            <span
-              className="text-[9px] font-semibold tracking-widest uppercase"
-              style={{ writingMode: 'vertical-lr', transform: 'rotate(180deg)' }}
-            >
-              Alertas
-            </span>
-          </button>
-        )}
-
-        {/* Panel del chat — desliza desde la derecha sobre el mapa */}
-        <div
-          className="absolute top-0 right-0 h-full z-10 transition-transform duration-300 ease-in-out"
-          style={{ width: 400, transform: chatOpen ? 'translateX(0)' : 'translateX(100%)' }}
-        >
-          <ChatWidget open={chatOpen} onOpenChange={setChatOpen} />
         </div>
 
       </div>
     </div>
-  )
+  );
 }

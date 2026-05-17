@@ -1,7 +1,7 @@
 'use client';
 
+import { AppBrandLink } from '@/components/brand/app-brand-link';
 import { AuthActions } from '@/components/landing/auth-actions';
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 const navLinks = [
@@ -30,13 +30,7 @@ export function SiteHeader() {
       }`}
     >
       <div className='mx-auto flex h-(--header-height) max-w-7xl items-center justify-between px-6 lg:px-10'>
-        <Link
-          href='/'
-          className='text-xl font-bold leading-none tracking-normal text-text-primary'
-          aria-label='Nimbus home'
-        >
-          Nimbus
-        </Link>
+        <AppBrandLink priority />
 
         <nav
           className='hidden items-center gap-8 md:flex'

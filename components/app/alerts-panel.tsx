@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 
-const API = 'http://localhost:8000/api/v1'
+const API = 'http://127.0.0.1:8000/api/v1'
 
 interface Alert {
   id: number
@@ -51,7 +51,15 @@ function alertKey(alert: Alert, isDemo: boolean): string {
   return `${scenario}-${alert.corridor_name}-${alert.horizon_hours}`
 }
 
-export function AlertsPanel({ isDemo, onCollapse }: { isDemo: boolean; onCollapse: () => void }) {
+export function AlertsPanel({
+  isDemo,
+  selectedCorridorName,
+  onSelectAlert,
+}: {
+  isDemo: boolean
+  selectedCorridorName: string | null
+  onSelectAlert: (corridorName: string) => void
+}) {
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -78,25 +86,7 @@ export function AlertsPanel({ isDemo, onCollapse }: { isDemo: boolean; onCollaps
   return (
     <aside className="flex w-80 h-full flex-col overflow-hidden border-r border-border-subtle bg-surface-base">
       <div className="shrink-0 border-b border-border-subtle px-5 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-text-muted">
-              Alertas activas
-            </p>
-            <h2 className="mt-0.5 text-base font-semibold text-text-primary">
-              Panel de riesgo
-            </h2>
-          </div>
-          <button
-            onClick={onCollapse}
-            aria-label="Colapsar panel"
-            className="size-7 rounded-md flex items-center justify-center text-text-muted hover:bg-surface-raised hover:text-text-primary transition-colors"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M15 18l-6-6 6-6"/>
-            </svg>
-          </button>
-        </div>
+
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
@@ -109,13 +99,18 @@ export function AlertsPanel({ isDemo, onCollapse }: { isDemo: boolean; onCollaps
           </div>
         )}
         {!loading && !error && alerts.length === 0 && (
-          <div className="px-5 py-8 text-sm text-text-muted">Sin alertas activas.</div>
+          <div className="px-5 py-8 text-sm leading-6 text-text-muted">
+            {isDemo
+              ? 'Sin alertas históricas para este escenario.'
+              : 'Sin alertas oficiales activas. El backend no reporta corredores sobre el umbral de alerta ahora mismo.'}
+          </div>
         )}
         {!loading && !error && alerts.length > 0 && (
           <ul>
             {alerts.map((alert) => {
               const chip = RISK_CHIP[riskKey(alert.probability)]
               const prob = Math.round(alert.probability * 100)
+              const selected = selectedCorridorName === alert.corridor_name
               const impact =
                 alert.population_impact >= 1_000_000
                   ? `${(alert.population_impact / 1_000_000).toFixed(1)}M`
@@ -124,33 +119,42 @@ export function AlertsPanel({ isDemo, onCollapse }: { isDemo: boolean; onCollaps
               return (
                 <li
                   key={alertKey(alert, isDemo)}
-                  className="border-b border-border-subtle px-5 py-4 transition-colors hover:bg-surface-raised"
+                  className="border-b border-border-subtle"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="text-sm font-medium leading-snug text-text-primary">
-                      {alert.corridor_name}
+                  <button
+                    type="button"
+                    onClick={() => onSelectAlert(alert.corridor_name)}
+                    className={[
+                      'block w-full px-5 py-4 text-left transition-colors',
+                      selected ? 'bg-surface-raised' : 'hover:bg-surface-raised',
+                    ].join(' ')}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="text-sm font-medium leading-snug text-text-primary">
+                        {alert.corridor_name}
+                      </p>
+                      <span
+                        className="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium"
+                        style={{ backgroundColor: chip.bg, color: chip.color }}
+                      >
+                        {chip.label}
+                      </span>
+                    </div>
+
+                    <div className="mt-2 flex items-center gap-3 text-xs text-text-muted">
+                      <span>
+                        <span className="font-semibold text-text-primary">{prob}%</span> prob.
+                      </span>
+                      <span className="text-border-subtle">·</span>
+                      <span>{alert.horizon_hours}h horizonte</span>
+                      <span className="text-border-subtle">·</span>
+                      <span>{impact} personas</span>
+                    </div>
+
+                    <p className="mt-1.5 text-xs text-text-muted">
+                      {timeAgo(alert.generated_at)}
                     </p>
-                    <span
-                      className="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium"
-                      style={{ backgroundColor: chip.bg, color: chip.color }}
-                    >
-                      {chip.label}
-                    </span>
-                  </div>
-
-                  <div className="mt-2 flex items-center gap-3 text-xs text-text-muted">
-                    <span>
-                      <span className="font-semibold text-text-primary">{prob}%</span> prob.
-                    </span>
-                    <span className="text-border-subtle">·</span>
-                    <span>{alert.horizon_hours}h horizonte</span>
-                    <span className="text-border-subtle">·</span>
-                    <span>{impact} hab.</span>
-                  </div>
-
-                  <p className="mt-1.5 text-xs text-text-muted">
-                    {timeAgo(alert.generated_at)}
-                  </p>
+                  </button>
                 </li>
               )
             })}

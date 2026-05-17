@@ -21,9 +21,9 @@ const encodeSansCondensed = Encode_Sans_Condensed({
 });
 
 export const metadata: Metadata = {
-  title: 'Nimbus — Anticipa el impacto del Fenómeno del Niño',
+  title: 'Aegis — Anticipa el impacto del Fenómeno del Niño',
   description:
-    'Convierte pronósticos climáticos en decisiones operativas para infraestructura, logística y salud. Actúa con días de ventaja, no cuando ya es tarde.',
+    'Convierte lluvia, deslaves y alertas locales en planes de acción personalizados para ciudadanos en Ecuador.',
 };
 
 export default function RootLayout({
@@ -33,8 +33,8 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang='en'
-      className={cn("h-full", "bg-surface-base", "antialiased", innovator.variable, encodeSansCondensed.variable, "font-sans", geist.variable)}
+lang='es'
+      className={`${innovator.variable} ${encodeSansCondensed.variable} h-full bg-surface-base antialiased`}
     >
       <head>
         <link

@@ -1,10 +1,10 @@
 const sources = [
   { name: "NOAA + Open-Meteo", detail: "Pronóstico El Niño y precipitación extrema" },
-  { name: "NASA LHASA", detail: "Susceptibilidad a deslaves, 1 km, diario" },
-  { name: "OpenStreetMap", detail: "Red vial y corredores críticos" },
-  { name: "OSRM", detail: "Rutas alternativas con tiempos reales" },
-  { name: "PAHO / SIVIGILA", detail: "Perfil epidemiológico histórico" },
-  { name: "CEPAL", detail: "Población e impacto por zona" },
+  { name: "NASA LHASA", detail: "Deslaves recientes y susceptibilidad" },
+  { name: "INEC / zonas EC", detail: "Cantones y parroquias para riesgo local" },
+  { name: "OpenStreetMap", detail: "Hospitales, farmacias y supermercados" },
+  { name: "Tavily Search", detail: "Ayuda temporal y noticias locales bajo demanda" },
+  { name: "PAHO / SIVIGILA", detail: "Contexto epidemiológico interno del agente" },
 ];
 
 export function DataSourcesSection() {

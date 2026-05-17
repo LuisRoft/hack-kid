@@ -2,16 +2,16 @@ import { SectionHeading } from '@/components/landing/section-heading';
 
 const benefits = [
   {
-    title: 'Prioriza antes del cierre',
-    body: 'Sabe qué tramos importan más y dónde conviene actuar primero — con impacto poblacional claro, no con suposiciones.',
+    title: 'Entiende tu riesgo local',
+    body: 'Cruza lluvia, zonas administrativas, corredores y deslaves recientes para responder qué está pasando cerca de ti.',
   },
   {
-    title: 'Mueve la carga con tiempo',
-    body: 'Recibe rutas alternativas listas para ejecutar antes de que tu operación quede atrapada en el corredor.',
+    title: 'Encuentra recursos cercanos',
+    body: 'Ubica hospitales, clínicas, farmacias y supermercados sin depender de una búsqueda manual en medio de la emergencia.',
   },
   {
-    title: 'Prepara salud con anticipación',
-    body: 'Identifica municipios en riesgo y qué insumos conviene mover mientras los caminos todavía están abiertos.',
+    title: 'Actúa con Hermes',
+    body: 'El agente usa tu ubicación, familia y recursos disponibles para armar un plan de acción concreto y fácil de seguir.',
   },
 ];
 
@@ -25,8 +25,8 @@ export function CascadesSection() {
       <div className='mx-auto max-w-7xl px-6 py-16 lg:px-10 lg:py-20'>
         <SectionHeading
           eyebrow='El producto'
-          title='Una plataforma. Tres frentes bajo control.'
-          description='Nimbus conecta el evento climático con lo que realmente le importa a tu operación: infraestructura, logística y salud pública.'
+          title='Mapa vivo y agente ciudadano en una sola experiencia.'
+          description='Aegis conecta el evento climático con lo que realmente necesitas decidir: qué riesgo tengo, qué recursos hay cerca y qué hago ahora.'
         />
 
         <ul className='mt-12 grid list-none gap-6 p-0 lg:grid-cols-3'>

@@ -2,16 +2,16 @@ import { SectionHeading } from '@/components/landing/section-heading';
 
 const pains = [
   {
-    title: 'La carretera ya cerró',
-    body: 'Te enteras cuando el daño ya está hecho y los recursos llegan tarde.',
+    title: 'No sabes si tu zona está en riesgo',
+    body: 'El pronóstico dice lluvia, pero no traduce eso a una decisión para tu barrio o tu casa.',
   },
   {
-    title: 'La carga se queda varada',
-    body: 'Un cierre inesperado paraliza rutas, almacenes y abastecimiento urbano.',
+    title: 'Tu familia necesita un plan distinto',
+    body: 'Niños, adultos mayores, medicinas, vehículo o refugio cambian lo que debes hacer primero.',
   },
   {
-    title: 'Salud entra en crisis',
-    body: 'Los hospitales reciben el pico sin insumos ni tiempo para prepararse.',
+    title: 'La ayuda cambia en tiempo real',
+    body: 'Los puntos útiles, albergues y noticias locales no viven en una pantalla estática.',
   },
 ];
 
@@ -24,9 +24,9 @@ export function ProblemSection() {
     >
       <div className='mx-auto max-w-7xl px-6 py-16 lg:px-10 lg:py-20'>
         <SectionHeading
-          eyebrow='Por qué Nimbus'
-          title='El clima avisa. Tu operación llega tarde.'
-          description='Los pronósticos te dicen que va a llover. Nadie te dice qué va a pasarle a tus carreteras, a tu logística ni a tu sistema de salud — hasta que ya es tarde.'
+          eyebrow='Por qué Aegis'
+          title='El clima avisa. Las familias necesitan pasos concretos.'
+          description='Los pronósticos te dicen que va a llover. Aegis lo traduce a riesgo local, recursos cercanos y un plan personalizado para actuar a tiempo.'
         />
 
         <ul className='mt-12 grid list-none gap-4 p-0 sm:grid-cols-3'>

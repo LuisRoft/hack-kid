@@ -3,9 +3,9 @@ import { Button } from '@/components/ui/button';
 import { HeroArt } from '@/components/landing/hero-art';
 
 const stats = [
-  { value: '72h+', label: 'Para mover equipos, rutas e insumos' },
-  { value: '3', label: 'Equipos alineados en una sola plataforma' },
-  { value: '24/7', label: 'Monitoreo de corredores críticos' },
+  { value: '72h', label: 'Pronóstico accionable para tu zona' },
+  { value: '24/7', label: 'Lluvia y deslaves recientes en el mapa' },
+  { value: '1', label: 'Plan familiar guiado por Hermes' },
 ];
 
 function ArrowIcon() {
@@ -54,22 +54,19 @@ export function HeroSection() {
                   Sabe qué viene{' '}
                 </span>
                 <span className='font-normal text-text-muted'>
-                  antes de que cierre el camino
+                  antes de que el riesgo llegue a casa
                 </span>
               </h1>
 
               <p className='mt-4 max-w-lg text-base leading-relaxed text-text-muted sm:mt-5'>
-                Nimbus convierte el pronóstico del Niño en decisiones concretas
-                para tu red vial, tu cadena de suministro y tu red de salud.
-                Menos improvisación. Más tiempo para actuar.
+                Aegis convierte lluvia, deslaves y alertas locales en un plan
+                claro para tu familia: qué revisar, dónde ir y cuándo actuar.
+                Menos improvisación cuando el clima empieza a cambiar.
               </p>
 
               <div className='mt-5 flex flex-wrap items-center gap-3 sm:mt-6'>
-                <Button asChild className='bg-brand text-white border-brand hover:bg-[#0a2d6e] active:bg-[#051a42] px-5 py-2.5 h-auto rounded-[var(--radius-xs)] gap-2'>
-                  <Link href='/sign-up'>
-                    Solicitar acceso
-                    <ArrowIcon />
-                  </Link>
+<Button href='/sign-up' variant='primary' icon={<ArrowIcon />}>
+                  Crear mi plan
                 </Button>
                 <Button asChild variant='outline' className='border-border-subtle text-text-primary hover:bg-surface-raised px-5 py-2.5 h-auto rounded-[var(--radius-xs)]'>
                   <Link href='#producto'>
