@@ -35,6 +35,10 @@ export function ChatWidget({ open, onOpenChange }: { open: boolean; onOpenChange
     onOpenChange(next)
   }
 
+  useEffect(() => {
+    if (!open) abortRef.current?.abort()
+  }, [open])
+
   async function sendMessage() {
     const text = input.trim()
     if (!text || busy) return
