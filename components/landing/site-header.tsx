@@ -23,13 +23,13 @@ export function SiteHeader() {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full shrink-0 border-b transition-[background-color,box-shadow,border-color] duration-[var(--motion-instant)] ${
+      className={`sticky top-0 z-50 w-full shrink-0 border-b transition-[background-color,box-shadow,border-color] duration-(--motion-instant) ${
         scrolled
           ? 'border-border-subtle/80 bg-surface-base/95 shadow-[0_1px_0_rgba(7,35,91,0.06)] backdrop-blur-md'
           : 'border-border-subtle/60 bg-surface-base'
       }`}
     >
-      <div className='mx-auto flex h-[var(--header-height)] max-w-7xl items-center justify-between px-6 lg:px-10'>
+      <div className='mx-auto flex h-(--header-height) max-w-7xl items-center justify-between px-6 lg:px-10'>
         <Link
           href='/'
           className='text-xl font-bold leading-none tracking-normal text-text-primary'

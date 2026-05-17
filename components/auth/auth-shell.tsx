@@ -19,7 +19,7 @@ export function AuthShell({
   return (
     <div className='auth-shell flex h-full max-h-dvh flex-col overflow-hidden bg-surface-base text-text-primary'>
       <header className='auth-shell__header shrink-0 border-b border-border-subtle/60'>
-        <div className='mx-auto flex h-[var(--header-height)] max-w-7xl items-center justify-between px-6 lg:px-10'>
+        <div className='mx-auto flex h-(--header-height) max-w-7xl items-center justify-between px-6 lg:px-10'>
           <Link
             href='/'
             className='text-2xl font-semibold leading-none tracking-normal text-text-primary'
