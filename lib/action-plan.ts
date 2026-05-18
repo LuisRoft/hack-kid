@@ -122,12 +122,77 @@ function isActionLine(line: string): boolean {
   );
 }
 
+function normalizeUrl(url: string): string {
+  return url.replace(/[),.;\]]+$/g, '');
+}
+
+function cleanResourceText(text: string): string {
+  return text
+    .replace(/^\s*[-*•]\s*/, '')
+    .replace(/\*\*/g, '')
+    .replace(/^_+|_+$/g, '')
+    .trim();
+}
+
+function resourceKindFor(label: string, description: string, url: string): ActionPlanResource['kind'] {
+  const searchable = `${label} ${description} ${url}`.toLowerCase();
+  if (/(albergue|refugio|evacuaci[oó]n|shelter)/.test(searchable)) return 'shelter';
+  if (/(secretar[ií]a|gesti[oó]n de riesgos|sgr|ecu[-\s]?911|gob\.ec|municipio|alcald[ií]a|prefectura)/.test(searchable)) {
+    return 'official';
+  }
+  if (/(hospital|cl[ií]nica|farmacia|salud|medicina)/.test(searchable)) return 'health';
+  if (/(supermercado|abastecimiento|agua|alimento|v[ií]veres|market)/.test(searchable)) {
+    return 'supply';
+  }
+  return 'resource';
+}
+
+function addResource(
+  resources: Map<string, ActionPlanResource>,
+  url: string,
+  label: string,
+  description = '',
+) {
+  const normalizedUrl = normalizeUrl(url);
+  if (!normalizedUrl || resources.has(normalizedUrl)) return;
+
+  const cleanLabel = cleanResourceText(label).replace(/\s+[—-]\s*$/, '');
+  const cleanDescription = cleanResourceText(description).slice(0, 170);
+
+  resources.set(normalizedUrl, {
+    label: cleanLabel || new URL(normalizedUrl).hostname.replace(/^www\./, ''),
+    url: normalizedUrl,
+    description: cleanDescription,
+    kind: resourceKindFor(cleanLabel, cleanDescription, normalizedUrl),
+  });
+}
+
 function extractResources(text: string): ActionPlanResource[] {
-  const urls = Array.from(text.matchAll(/https?:\/\/[^\s)]+/g)).map((match) => match[0]);
-  return Array.from(new Set(urls)).slice(0, 4).map((url, index) => ({
-    label: `Fuente ${index + 1}`,
-    url,
-  }));
+  const resources = new Map<string, ActionPlanResource>();
+  const lines = text.split('\n');
+
+  lines.forEach((line, index) => {
+    const boldResult = line.match(/^\s*[-*•]?\s*\*\*([^*]+)\*\*\s*[—-]\s*(https?:\/\/[^\s)]+)/);
+    const plainResult = line.match(/^\s*[-*•]?\s*([^—\n]+?)\s*[—-]\s*(https?:\/\/[^\s)]+)/);
+    const result = boldResult ?? plainResult;
+
+    if (!result) return;
+
+    const nextLine = lines[index + 1] ?? '';
+    const description =
+      /^(\s{2,}|\s*$)/.test(nextLine) && !/https?:\/\//.test(nextLine)
+        ? nextLine
+        : '';
+    addResource(resources, result[2], result[1], description);
+  });
+
+  Array.from(text.matchAll(/https?:\/\/[^\s)]+/g)).forEach((match) => {
+    const url = normalizeUrl(match[0]);
+    if (resources.has(url)) return;
+    addResource(resources, url, new URL(url).hostname.replace(/^www\./, ''));
+  });
+
+  return Array.from(resources.values()).slice(0, 5);
 }
 
 function summaryFrom(text: string): string {

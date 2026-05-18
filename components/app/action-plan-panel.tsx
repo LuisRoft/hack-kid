@@ -2,11 +2,15 @@
 
 import { useMemo, useState } from 'react';
 import {
+  Building2Icon,
   CheckCircle2Icon,
   CircleIcon,
   ExternalLinkIcon,
+  HeartPulseIcon,
   ListChecksIcon,
   MessageCircleIcon,
+  PackageIcon,
+  ShieldCheckIcon,
   XIcon,
 } from 'lucide-react';
 
@@ -19,6 +23,8 @@ export type ActionPlanItem = {
 export type ActionPlanResource = {
   label: string;
   url: string;
+  description?: string;
+  kind?: 'shelter' | 'official' | 'health' | 'supply' | 'resource';
 };
 
 export type ActionPlan = {
@@ -34,6 +40,42 @@ function phaseTone(phase: ActionPlanItem['phase']) {
   if (phase === 'Ahora') return 'bg-[#fee2e2] text-[#991b1b]';
   if (phase === 'Si empeora') return 'bg-[#fef3c7] text-[#92400e]';
   return 'bg-surface-raised text-text-muted';
+}
+
+function resourceMeta(kind: ActionPlanResource['kind']) {
+  if (kind === 'shelter') {
+    return {
+      label: 'Albergue',
+      icon: Building2Icon,
+      tone: 'border-[#fed7aa] bg-[#fff7ed] text-[#9a3412]',
+    };
+  }
+  if (kind === 'official') {
+    return {
+      label: 'Oficial',
+      icon: ShieldCheckIcon,
+      tone: 'border-[#d1d5db] bg-[#f9fafb] text-[#374151]',
+    };
+  }
+  if (kind === 'health') {
+    return {
+      label: 'Salud',
+      icon: HeartPulseIcon,
+      tone: 'border-[#fecaca] bg-[#fef2f2] text-[#991b1b]',
+    };
+  }
+  if (kind === 'supply') {
+    return {
+      label: 'Abasto',
+      icon: PackageIcon,
+      tone: 'border-[#bbf7d0] bg-[#f0fdf4] text-[#166534]',
+    };
+  }
+  return {
+    label: 'Fuente',
+    icon: ExternalLinkIcon,
+    tone: 'border-border-subtle bg-surface-raised text-text-muted',
+  };
 }
 
 export function ActionPlanPanel({
@@ -144,21 +186,43 @@ export function ActionPlanPanel({
         {plan.resources.length > 0 ? (
           <section className='mt-4 border-t border-border-subtle pt-3'>
             <p className='mb-2 text-[11px] font-medium uppercase tracking-[0.14em] text-text-muted'>
-              Recursos encontrados
+              Recursos verificados
             </p>
             <div className='grid gap-2'>
-              {plan.resources.map((resource) => (
-                <a
-                  key={resource.url}
-                  href={resource.url}
-                  target='_blank'
-                  rel='noreferrer'
-                  className='flex items-center justify-between gap-3 rounded-md border border-border-subtle px-3 py-2 text-xs text-text-primary transition-colors hover:bg-surface-raised'
-                >
-                  <span className='truncate'>{resource.label}</span>
-                  <ExternalLinkIcon className='size-3.5 shrink-0 text-text-muted' />
-                </a>
-              ))}
+              {plan.resources.map((resource) => {
+                const meta = resourceMeta(resource.kind);
+                const Icon = meta.icon;
+
+                return (
+                  <a
+                    key={resource.url}
+                    href={resource.url}
+                    target='_blank'
+                    rel='noreferrer'
+                    className='group rounded-md border border-border-subtle bg-surface-base px-3 py-2.5 text-xs text-text-primary transition-colors hover:bg-surface-raised'
+                  >
+                    <div className='flex items-start gap-2.5'>
+                      <div className={`mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md border ${meta.tone}`}>
+                        <Icon className='size-3.5' />
+                      </div>
+                      <div className='min-w-0 flex-1'>
+                        <div className='flex items-start justify-between gap-2'>
+                          <span className='line-clamp-2 font-medium leading-4'>{resource.label}</span>
+                          <ExternalLinkIcon className='mt-0.5 size-3.5 shrink-0 text-text-muted transition-colors group-hover:text-text-primary' />
+                        </div>
+                        {resource.description ? (
+                          <p className='mt-1 line-clamp-2 leading-4 text-text-muted'>
+                            {resource.description}
+                          </p>
+                        ) : null}
+                        <span className={`mt-2 inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium ${meta.tone}`}>
+                          {meta.label}
+                        </span>
+                      </div>
+                    </div>
+                  </a>
+                );
+              })}
             </div>
           </section>
         ) : null}
