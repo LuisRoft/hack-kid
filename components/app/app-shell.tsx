@@ -1,10 +1,11 @@
 'use client';
 
 import { UserButton } from '@clerk/nextjs';
-import { MessageCircleIcon } from 'lucide-react';
+import { MessageCircleIcon, MapIcon, BellIcon, Layers3Icon } from 'lucide-react';
 import { AppBrandLink } from '@/components/brand/app-brand-link';
 import { useEffect, useState } from 'react';
 import { AlertsPanel } from '@/components/app/alerts-panel';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { ChatWidget } from '@/components/app/chat-widget';
 import {
   ActionPlanPanel,
@@ -127,6 +128,7 @@ export function AppShell() {
   >(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [actionPlan, setActionPlan] = useState<ActionPlan | null>(null);
+  const [mobileSheet, setMobileSheet] = useState<'alerts' | 'layers' | null>(null);
   const isDemo = scenario === 'demo';
   const isPredictive = viewMode === 'predictive';
   const visibleLayerLabels = isPredictive
@@ -208,11 +210,11 @@ export function AppShell() {
     >
       {/* Header */}
       <header className='border-b border-border-subtle/60 bg-surface-base'>
-        <div className='flex items-center justify-between px-6 py-4 lg:px-8'>
+        <div className='flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 lg:px-8'>
           <div className='flex items-center gap-5'>
             <AppBrandLink href='/app' />
 
-            <div className='flex items-center gap-3'>
+            <div className='hidden md:flex items-center gap-3'>
               <div className='flex overflow-hidden rounded-md border border-border-subtle'>
               {DATA_MODES.map((s, i) => (
                 <button
@@ -282,7 +284,7 @@ export function AppShell() {
           chatOpen ? 'Cerrar asistente Hermes IA' : 'Abrir asistente Hermes IA'
         }
         onClick={() => setChatOpen((open) => !open)}
-        className='fixed top-1/2 z-50 flex -translate-y-1/2 cursor-pointer flex-col items-center gap-2 rounded-l-xl border-y border-l border-white/10 bg-brand px-2.5 py-5 text-white shadow-lg shadow-brand/25 transition-[right,background-color] duration-300 ease-in-out hover:bg-[#0a2d6e]'
+        className='fixed top-1/2 z-50 hidden md:flex -translate-y-1/2 cursor-pointer flex-col items-center gap-2 rounded-l-xl border-y border-l border-white/10 bg-brand px-2.5 py-5 text-white shadow-lg shadow-brand/25 transition-[right,background-color] duration-300 ease-in-out hover:bg-[#0a2d6e]'
         style={{ right: chatOpen ? CHAT_PANEL_WIDTH : 0 }}
       >
         <MessageCircleIcon className='size-[18px]' />
@@ -320,7 +322,7 @@ export function AppShell() {
             />
           ) : null}
 
-          <div className='pointer-events-none absolute left-4 top-4 z-10 flex max-w-[calc(100%-2rem)] flex-col gap-3'>
+          <div className='pointer-events-none absolute left-4 top-4 z-10 hidden md:flex max-w-[calc(100%-2rem)] flex-col gap-3'>
             {isPredictive ? (
               <div className='pointer-events-auto w-fit rounded-md border border-border-subtle bg-surface-base/95 p-2 shadow-sm backdrop-blur'>
                 <p className='px-1 pb-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-text-muted'>
@@ -475,9 +477,8 @@ export function AppShell() {
           </div>
 
           <div
-            className='absolute top-0 right-0 z-20 h-full transition-transform duration-300 ease-in-out'
+            className={`absolute top-0 right-0 z-20 bottom-[64px] md:bottom-0 w-full md:w-[400px] transition-transform duration-300 ease-in-out ${chatOpen ? '' : 'pointer-events-none'}`}
             style={{
-              width: CHAT_PANEL_WIDTH,
               transform: chatOpen ? 'translateX(0)' : 'translateX(100%)',
             }}
           >
@@ -492,6 +493,207 @@ export function AppShell() {
           </div>
         </div>
       </div>
+
+      {/* Mobile bottom tab bar */}
+      <nav
+        className='md:hidden fixed bottom-0 left-0 right-0 z-30 grid grid-cols-4 border-t border-border-subtle bg-surface-base/95 backdrop-blur'
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        aria-label='Navegación principal'
+      >
+        <button
+          type='button'
+          onClick={() => { setMobileSheet(null); setChatOpen(false); }}
+          className={`flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${
+            !mobileSheet && !chatOpen ? 'text-brand' : 'text-text-muted hover:text-text-primary'
+          }`}
+          aria-label='Mapa'
+        >
+          <MapIcon className='h-5 w-5' />
+          Mapa
+        </button>
+        <button
+          type='button'
+          onClick={() => { setMobileSheet('alerts'); setChatOpen(false); }}
+          className={`flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${
+            mobileSheet === 'alerts' ? 'text-brand' : 'text-text-muted hover:text-text-primary'
+          }`}
+          aria-label='Alertas'
+        >
+          <BellIcon className='h-5 w-5' />
+          Alertas
+        </button>
+        <button
+          type='button'
+          onClick={() => { setMobileSheet('layers'); setChatOpen(false); }}
+          className={`flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${
+            mobileSheet === 'layers' ? 'text-brand' : 'text-text-muted hover:text-text-primary'
+          }`}
+          aria-label='Capas'
+        >
+          <Layers3Icon className='h-5 w-5' />
+          Capas
+        </button>
+        <button
+          type='button'
+          onClick={() => { setMobileSheet(null); setChatOpen(true); }}
+          className={`flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${
+            chatOpen ? 'text-brand' : 'text-text-muted hover:text-text-primary'
+          }`}
+          aria-label='Hermes IA'
+        >
+          <MessageCircleIcon className='h-5 w-5' />
+          Hermes
+        </button>
+      </nav>
+
+      {/* Mobile sheet: Alerts */}
+      <Sheet
+        open={mobileSheet === 'alerts'}
+        onOpenChange={(open) => setMobileSheet(open ? 'alerts' : null)}
+      >
+        <SheetContent side='bottom' className='h-[80vh] p-0 md:hidden'>
+          <SheetTitle className='px-5 pt-5 pb-3 text-base'>Alertas activas</SheetTitle>
+          <AlertsPanel
+            key={`mobile-${scenario}`}
+            isDemo={isDemo}
+            selectedCorridorName={selectedCorridorName}
+            onSelectAlert={(name) => {
+              setSelectedCorridorName(name);
+              setMobileSheet(null);
+            }}
+            className='flex w-full border-0'
+          />
+        </SheetContent>
+      </Sheet>
+
+      {/* Mobile sheet: Layers / Mode */}
+      <Sheet
+        open={mobileSheet === 'layers'}
+        onOpenChange={(open) => setMobileSheet(open ? 'layers' : null)}
+      >
+        <SheetContent side='bottom' className='h-[85vh] overflow-y-auto md:hidden'>
+          <SheetTitle className='text-base'>Capas y modos</SheetTitle>
+
+          <div className='mt-4 space-y-5'>
+            <div>
+              <p className='pb-2 text-[11px] font-medium uppercase tracking-[0.14em] text-text-muted'>
+                Datos
+              </p>
+              <div className='flex overflow-hidden rounded-md border border-border-subtle'>
+                {DATA_MODES.map((s, i) => (
+                  <button
+                    key={s.id}
+                    onClick={() => {
+                      setScenario(s.id);
+                      if (s.id === 'demo') {
+                        setViewMode('predictive');
+                        setLayers(PREDICTIVE_LAYERS);
+                      }
+                      setSelectedCorridorName(null);
+                    }}
+                    className={[
+                      'flex-1 px-4 py-2 text-sm font-medium transition-colors',
+                      i > 0 ? 'border-l border-border-subtle' : '',
+                      scenario === s.id
+                        ? 'bg-brand text-text-secondary'
+                        : 'text-text-muted hover:bg-surface-raised',
+                    ].join(' ')}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p className='pb-2 text-[11px] font-medium uppercase tracking-[0.14em] text-text-muted'>
+                Vista
+              </p>
+              <div className='flex overflow-hidden rounded-md border border-border-subtle'>
+                {VIEW_MODES.map((mode, index) => {
+                  const disabled = isDemo && mode.id === 'realtime';
+                  return (
+                    <button
+                      key={mode.id}
+                      type='button'
+                      disabled={disabled}
+                      onClick={() => changeViewMode(mode.id)}
+                      className={[
+                        'flex-1 px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-45',
+                        index > 0 ? 'border-l border-border-subtle' : '',
+                        viewMode === mode.id
+                          ? 'bg-brand text-text-secondary'
+                          : 'text-text-muted hover:bg-surface-raised',
+                      ].join(' ')}
+                    >
+                      {mode.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {isPredictive ? (
+              <div>
+                <p className='pb-2 text-[11px] font-medium uppercase tracking-[0.14em] text-text-muted'>
+                  Riesgo esperado
+                </p>
+                <div className='flex overflow-hidden rounded-md border border-border-subtle'>
+                  {HORIZONS.map((item, index) => (
+                    <button
+                      key={item}
+                      type='button'
+                      onClick={() => setHorizon(item)}
+                      className={[
+                        'flex-1 px-3 py-2 text-sm font-medium transition-colors',
+                        index > 0 ? 'border-l border-border-subtle' : '',
+                        horizon === item
+                          ? 'bg-brand text-text-secondary'
+                          : 'text-text-muted hover:bg-surface-raised',
+                      ].join(' ')}
+                    >
+                      {item}h
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            <div>
+              <p className='pb-2 text-[11px] font-medium uppercase tracking-[0.14em] text-text-muted'>
+                {isPredictive ? 'Capas predictivas' : 'Capas en tiempo real'}
+              </p>
+              <div className='grid gap-1'>
+                {visibleLayerLabels.map((item) => {
+                  const disabled =
+                    isDemo && 'currentOnly' in item && item.currentOnly === true;
+                  const checked = effectiveLayers[item.id];
+                  return (
+                    <label
+                      key={item.id}
+                      className={[
+                        'flex items-center gap-3 rounded-[var(--radius-xs)] px-2 py-2.5 text-sm transition-colors',
+                        disabled
+                          ? 'cursor-not-allowed text-text-muted/60'
+                          : 'cursor-pointer text-text-primary hover:bg-surface-raised',
+                      ].join(' ')}
+                    >
+                      <input
+                        type='checkbox'
+                        checked={checked}
+                        disabled={disabled}
+                        onChange={() => toggleLayer(item.id)}
+                        className='accent-brand h-4 w-4'
+                      />
+                      {item.label}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

@@ -55,10 +55,12 @@ export function AlertsPanel({
   isDemo,
   selectedCorridorName,
   onSelectAlert,
+  className = 'hidden md:flex w-80 border-r border-border-subtle',
 }: {
   isDemo: boolean
   selectedCorridorName: string | null
   onSelectAlert: (corridorName: string) => void
+  className?: string
 }) {
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [loading, setLoading] = useState(true)
@@ -84,7 +86,7 @@ export function AlertsPanel({
   }, [isDemo])
 
   return (
-    <aside className="flex w-80 h-full flex-col overflow-hidden border-r border-border-subtle bg-surface-base">
+    <aside className={`${className} h-full flex-col overflow-hidden bg-surface-base`}>
       <div className="shrink-0 border-b border-border-subtle px-5 py-4">
 
       </div>
