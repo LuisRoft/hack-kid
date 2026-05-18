@@ -51,17 +51,16 @@ export function HeroSection() {
 
               <h1 className='font-display text-[clamp(1.875rem,4.2vw,var(--font-size-3xl))] leading-[1.05] tracking-[0.01em]'>
                 <span className='font-semibold text-text-primary'>
-                  Sabe qué viene{' '}
+                  72h de anticipación{' '}
                 </span>
                 <span className='font-normal text-text-muted'>
-                  antes de que el riesgo llegue a casa
+                  ante lluvia y deslaves en tu zona
                 </span>
               </h1>
 
               <p className='mt-4 max-w-lg text-base leading-relaxed text-text-muted sm:mt-5'>
-                Aegis convierte lluvia, deslaves y alertas locales en un plan
-                claro para tu familia: qué revisar, dónde ir y cuándo actuar.
-                Menos improvisación cuando el clima empieza a cambiar.
+                Aegis procesa datos satelitales, precipitación y susceptibilidad del
+                terreno para convertir alertas en un plan familiar accionable.
               </p>
 
               <div className='mt-5 flex flex-wrap items-center gap-3 sm:mt-6'>

@@ -26,7 +26,7 @@ export function CtaSection() {
           id='cta-heading'
           className='mx-auto max-w-2xl font-display text-[clamp(1.75rem,3vw,var(--font-size-2xl))] leading-[1.1] font-semibold text-text-primary'
         >
-          El Niño no espera. Tu familia tampoco debería improvisar.
+          72 horas de anticipación. Tu familia lista.
         </h2>
         <p className='mx-auto mt-4 max-w-xl text-base text-text-muted'>
           Crea tu perfil ciudadano, revisa el riesgo cerca de ti y deja que
