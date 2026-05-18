@@ -2,6 +2,8 @@
 
 **Plataforma de alerta temprana para deslaves en Ecuador**
 
+**Backend:** https://github.com/LuisRoft/back-kid
+
 ---
 
 El cambio climático está haciendo que los eventos climáticos extremos sean más frecuentes y más impredecibles. En Ecuador, los deslaves caused by heavy rainfall represent one of the highest risks for rural communities and critical infrastructure. When the warning comes, families have minutes to act — not hours.
@@ -104,7 +106,3 @@ Backend (FastAPI + PostGIS + GeoAlchemy)
     ↓ procesa y computa
 Satellite data / Weather models / LHASA NRT
 ```
-
----
-
-**Backend:** https://github.com/LuisRoft/back-kid
