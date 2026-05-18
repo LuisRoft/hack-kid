@@ -477,10 +477,11 @@ export function AppShell() {
           </div>
 
           <div
-            className={`absolute top-0 right-0 z-20 bottom-[64px] md:bottom-0 w-full md:w-[400px] transition-transform duration-300 ease-in-out ${chatOpen ? '' : 'pointer-events-none'}`}
-            style={{
-              transform: chatOpen ? 'translateX(0)' : 'translateX(100%)',
-            }}
+            className={`absolute top-0 right-0 z-20 bottom-[64px] md:bottom-0 w-full md:w-[400px] transition-all duration-300 ease-in-out ${
+              chatOpen
+                ? 'opacity-100 translate-x-0 pointer-events-auto'
+                : 'opacity-0 md:opacity-100 translate-x-0 md:translate-x-full pointer-events-none'
+            }`}
           >
             <ChatWidget
               open={chatOpen}

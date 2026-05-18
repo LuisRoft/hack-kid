@@ -139,8 +139,12 @@ function fitToRiskSegments(
   }
 
   if (!bounds.isEmpty()) {
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+    const padding = isMobile
+      ? { top: 80, right: 32, bottom: 120, left: 32 }
+      : { top: 96, right: 96, bottom: 96, left: 420 }
     map.fitBounds(bounds, {
-      padding: { top: 96, right: 96, bottom: 96, left: 420 },
+      padding,
       maxZoom: 10,
       duration: 900,
     })
