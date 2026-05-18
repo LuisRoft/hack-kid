@@ -476,11 +476,10 @@ export function AppShell() {
             </div>
           </div>
 
+          {/* Desktop: panel deslizante lateral */}
           <div
-            className={`absolute top-0 right-0 z-20 bottom-[64px] md:bottom-0 w-full md:w-[400px] transition-all duration-300 ease-in-out ${
-              chatOpen
-                ? 'opacity-100 translate-x-0 pointer-events-auto'
-                : 'opacity-0 md:opacity-100 translate-x-0 md:translate-x-full pointer-events-none'
+            className={`hidden md:block absolute top-0 right-0 z-20 bottom-0 w-[400px] transition-transform duration-300 ease-in-out ${
+              chatOpen ? 'translate-x-0' : 'translate-x-full pointer-events-none'
             }`}
           >
             <ChatWidget
@@ -563,6 +562,25 @@ export function AppShell() {
               setMobileSheet(null);
             }}
             className='flex w-full border-0'
+          />
+        </SheetContent>
+      </Sheet>
+
+      {/* Mobile sheet: Hermes IA */}
+      <Sheet open={chatOpen} onOpenChange={setChatOpen}>
+        <SheetContent
+          side='right'
+          showCloseButton={false}
+          className='md:hidden w-full sm:max-w-none p-0 gap-0 bottom-[64px] h-auto'
+        >
+          <SheetTitle className='sr-only'>Hermes IA</SheetTitle>
+          <ChatWidget
+            open={chatOpen}
+            onOpenChange={setChatOpen}
+            onActionPlan={(plan) => {
+              setActionPlan(plan);
+              setChatOpen(false);
+            }}
           />
         </SheetContent>
       </Sheet>

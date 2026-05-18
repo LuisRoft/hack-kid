@@ -177,7 +177,7 @@ export function ChatWidget({
   const reversed = [...messages].reverse()
 
   return (
-      <div className="w-[400px] h-full flex flex-col border-l border-border bg-background overflow-hidden">
+      <div className="w-full md:w-[400px] h-full flex flex-col md:border-l border-border bg-background overflow-hidden">
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-border shrink-0">
           <div className="size-8 rounded-full bg-brand flex items-center justify-center shrink-0">
