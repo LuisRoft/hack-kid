@@ -10,6 +10,8 @@ import {
   ChatToolbarButton,
   ChatToolbarTextarea,
 } from '@/components/chat/chat-toolbar'
+import { actionPlanFromHermesText } from '@/lib/action-plan'
+import type { ActionPlan } from '@/components/app/action-plan-panel'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:8000'
 const CLERK_JWT_TEMPLATE = process.env.NEXT_PUBLIC_CLERK_JWT_TEMPLATE
@@ -25,7 +27,15 @@ function uid() {
   return Math.random().toString(36).slice(2, 10)
 }
 
-export function ChatWidget({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
+export function ChatWidget({
+  open,
+  onOpenChange,
+  onActionPlan,
+}: {
+  open: boolean
+  onOpenChange: (v: boolean) => void
+  onActionPlan?: (plan: ActionPlan) => void
+}) {
   const { getToken, isSignedIn } = useAuth()
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -88,6 +98,7 @@ export function ChatWidget({ open, onOpenChange }: { open: boolean; onOpenChange
       const reader = res.body.getReader()
       const decoder = new TextDecoder()
       let buffer = ''
+      let assistantText = ''
 
       while (true) {
         const { done, value } = await reader.read()
@@ -110,6 +121,7 @@ export function ChatWidget({ open, onOpenChange }: { open: boolean; onOpenChange
             }
 
             if (event.type === 'text' && event.text) {
+              assistantText += event.text
               setMessages(prev =>
                 prev.map(m =>
                   m.id === assistantId ? { ...m, text: m.text + event.text } : m,
@@ -119,6 +131,8 @@ export function ChatWidget({ open, onOpenChange }: { open: boolean; onOpenChange
 
             if (event.type === 'done') {
               if (event.session_id) setSessionId(event.session_id)
+              const plan = actionPlanFromHermesText(assistantText)
+              if (plan) onActionPlan?.(plan)
               setMessages(prev =>
                 prev.map(m =>
                   m.id === assistantId ? { ...m, streaming: false } : m,

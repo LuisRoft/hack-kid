@@ -7,6 +7,10 @@ import { useEffect, useState } from 'react';
 import { AlertsPanel } from '@/components/app/alerts-panel';
 import { ChatWidget } from '@/components/app/chat-widget';
 import {
+  ActionPlanPanel,
+  type ActionPlan,
+} from '@/components/app/action-plan-panel';
+import {
   RiskMap,
   type MapLayerId,
   type MapLayerState,
@@ -122,6 +126,7 @@ export function AppShell() {
     string | null
   >(null);
   const [chatOpen, setChatOpen] = useState(false);
+  const [actionPlan, setActionPlan] = useState<ActionPlan | null>(null);
   const isDemo = scenario === 'demo';
   const isPredictive = viewMode === 'predictive';
   const visibleLayerLabels = isPredictive
@@ -307,6 +312,14 @@ export function AppShell() {
             selectedCorridorName={selectedCorridorName}
           />
 
+          {actionPlan ? (
+            <ActionPlanPanel
+              plan={actionPlan}
+              onClose={() => setActionPlan(null)}
+              onOpenChat={() => setChatOpen(true)}
+            />
+          ) : null}
+
           <div className='pointer-events-none absolute left-4 top-4 z-10 flex max-w-[calc(100%-2rem)] flex-col gap-3'>
             {isPredictive ? (
               <div className='pointer-events-auto w-fit rounded-md border border-border-subtle bg-surface-base/95 p-2 shadow-sm backdrop-blur'>
@@ -468,7 +481,14 @@ export function AppShell() {
               transform: chatOpen ? 'translateX(0)' : 'translateX(100%)',
             }}
           >
-            <ChatWidget open={chatOpen} onOpenChange={setChatOpen} />
+            <ChatWidget
+              open={chatOpen}
+              onOpenChange={setChatOpen}
+              onActionPlan={(plan) => {
+                setActionPlan(plan);
+                setChatOpen(false);
+              }}
+            />
           </div>
         </div>
       </div>
