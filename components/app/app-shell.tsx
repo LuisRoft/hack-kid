@@ -1,9 +1,11 @@
 'use client';
 
 import { UserButton } from '@clerk/nextjs';
+import { MessageCircleIcon } from 'lucide-react';
 import { AppBrandLink } from '@/components/brand/app-brand-link';
 import { useEffect, useState } from 'react';
 import { AlertsPanel } from '@/components/app/alerts-panel';
+import { ChatWidget } from '@/components/app/chat-widget';
 import {
   RiskMap,
   type MapLayerId,
@@ -32,7 +34,7 @@ const PREDICTIVE_LAYERS: MapLayerState = {
   rain: false,
   landslideRisk: true,
   landslideReports: false,
-  resources: false,
+  resources: true,
   corridors: true,
 };
 
@@ -53,6 +55,7 @@ const PREDICTIVE_LAYER_LABELS: {
   { id: 'zones', label: 'Riesgo por zona', currentOnly: true },
   { id: 'landslideRisk', label: 'Riesgo de deslave' },
   { id: 'corridors', label: 'Red vial monitoreada' },
+  { id: 'resources', label: 'Recursos cercanos', currentOnly: true },
 ];
 
 const REALTIME_LAYER_LABELS: { id: MapLayerId; label: string }[] = [
@@ -68,6 +71,7 @@ type LiveLayerStatus = {
 };
 
 const API = 'http://127.0.0.1:8000/api/v1';
+const CHAT_PANEL_WIDTH = 400;
 
 async function featureCount(url: string): Promise<number> {
   const response = await fetch(url);
@@ -117,6 +121,7 @@ export function AppShell() {
   const [selectedCorridorName, setSelectedCorridorName] = useState<
     string | null
   >(null);
+  const [chatOpen, setChatOpen] = useState(false);
   const isDemo = scenario === 'demo';
   const isPredictive = viewMode === 'predictive';
   const visibleLayerLabels = isPredictive
@@ -168,7 +173,24 @@ export function AppShell() {
     };
   }, [isDemo]);
 
-  // Shortcuts: [ = toggle alertas, ] = toggle chat
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      const target = event.target as HTMLElement;
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+      if (event.key === ']') {
+        setChatOpen((open) => !open);
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
 
   return (
     <div
@@ -249,7 +271,25 @@ export function AppShell() {
         </div>
       </header>
 
-{/* Content: sidebar + map */}
+      <button
+        type='button'
+        aria-label={
+          chatOpen ? 'Cerrar asistente Hermes IA' : 'Abrir asistente Hermes IA'
+        }
+        onClick={() => setChatOpen((open) => !open)}
+        className='fixed top-1/2 z-50 flex -translate-y-1/2 cursor-pointer flex-col items-center gap-2 rounded-l-xl border-y border-l border-white/10 bg-brand px-2.5 py-5 text-white shadow-lg shadow-brand/25 transition-[right,background-color] duration-300 ease-in-out hover:bg-[#0a2d6e]'
+        style={{ right: chatOpen ? CHAT_PANEL_WIDTH : 0 }}
+      >
+        <MessageCircleIcon className='size-[18px]' />
+        <span
+          className='text-[10px] font-semibold tracking-widest uppercase'
+          style={{ writingMode: 'vertical-lr', transform: 'rotate(180deg)' }}
+        >
+          Hermes IA
+        </span>
+      </button>
+
+      {/* Content: sidebar + map */}
       <div style={{ display: 'flex', overflow: 'hidden', minHeight: 0 }}>
         <AlertsPanel
           key={scenario}
@@ -357,6 +397,12 @@ export function AppShell() {
                       </span>{' '}
                       tramos de carretera coloreados por probabilidad.
                     </p>
+                    <p>
+                      <span className='font-medium text-text-primary'>
+                        Red monitoreada:
+                      </span>{' '}
+                      corredores principales en verde azulado.
+                    </p>
                     {!isDemo && liveStatus.alerts === 0 ? (
                       <p>No hay alertas oficiales activas de corredores.</p>
                     ) : null}
@@ -381,13 +427,19 @@ export function AppShell() {
 
               <div className='mt-3 grid gap-1.5 text-[11px] text-text-muted'>
                 {isPredictive ? (
-                  <div className='flex items-center gap-2'>
-                    <span className='h-2.5 w-2.5 rounded-sm bg-[#7f1d1d]' />
-                    Crítico
-                    <span className='h-2.5 w-2.5 rounded-sm bg-[#ef4444]' />
-                    Alto
-                    <span className='h-2.5 w-2.5 rounded-sm bg-[#f97316]' />
-                    Moderado
+                  <div className='grid gap-1.5'>
+                    <div className='flex items-center gap-2'>
+                      <span className='h-2.5 w-2.5 rounded-sm bg-[#7f1d1d]' />
+                      Crítico
+                      <span className='h-2.5 w-2.5 rounded-sm bg-[#ef4444]' />
+                      Alto
+                      <span className='h-2.5 w-2.5 rounded-sm bg-[#f97316]' />
+                      Moderado
+                    </div>
+                    <div className='flex items-center gap-2'>
+                      <span className='h-0.5 w-8 rounded-full bg-[#0f766e] ring-2 ring-[#ecfeff]' />
+                      Corredor monitoreado
+                    </div>
                   </div>
                 ) : (
                   <div className='flex items-center gap-2'>
@@ -408,8 +460,17 @@ export function AppShell() {
               </div>
             </div>
           </div>
-        </div>
 
+          <div
+            className='absolute top-0 right-0 z-20 h-full transition-transform duration-300 ease-in-out'
+            style={{
+              width: CHAT_PANEL_WIDTH,
+              transform: chatOpen ? 'translateX(0)' : 'translateX(100%)',
+            }}
+          >
+            <ChatWidget open={chatOpen} onOpenChange={setChatOpen} />
+          </div>
+        </div>
       </div>
     </div>
   );

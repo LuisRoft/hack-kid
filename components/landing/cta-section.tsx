@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 function ArrowIcon() {
@@ -31,12 +32,15 @@ export function CtaSection() {
           Crea tu perfil ciudadano, revisa el riesgo cerca de ti y deja que
           Hermes convierta la alerta en un plan accionable.
         </p>
-<div className='mt-8 flex flex-wrap items-center justify-center gap-3'>
-          <Button href='/sign-up' variant='primary' icon={<ArrowIcon />}>
-            Crear mi plan
+        <div className='mt-8 flex flex-wrap items-center justify-center gap-3'>
+          <Button asChild className='h-auto rounded-[var(--radius-xs)] px-5 py-2.5'>
+            <Link href='/sign-up'>
+              Crear mi plan
+              <ArrowIcon />
+            </Link>
           </Button>
-          <Button href='/sign-in' variant='secondary'>
-            Ya tengo cuenta
+          <Button asChild variant='secondary' className='h-auto rounded-[var(--radius-xs)] px-5 py-2.5'>
+            <Link href='/sign-in'>Ya tengo cuenta</Link>
           </Button>
         </div>
       </div>

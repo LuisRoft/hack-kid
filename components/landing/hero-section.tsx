@@ -65,13 +65,14 @@ export function HeroSection() {
               </p>
 
               <div className='mt-5 flex flex-wrap items-center gap-3 sm:mt-6'>
-<Button href='/sign-up' variant='primary' icon={<ArrowIcon />}>
-                  Crear mi plan
+                <Button asChild className='h-auto rounded-[var(--radius-xs)] px-5 py-2.5'>
+                  <Link href='/sign-up'>
+                    Crear mi plan
+                    <ArrowIcon />
+                  </Link>
                 </Button>
                 <Button asChild variant='outline' className='border-border-subtle text-text-primary hover:bg-surface-raised px-5 py-2.5 h-auto rounded-[var(--radius-xs)]'>
-                  <Link href='#producto'>
-                    Ver el producto
-                  </Link>
+                  <Link href='#producto'>Ver el producto</Link>
                 </Button>
               </div>
             </div>

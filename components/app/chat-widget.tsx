@@ -1,5 +1,6 @@
 'use client'
 
+import { useAuth } from '@clerk/nextjs'
 import { useEffect, useRef, useState } from 'react'
 import { SendIcon, SparklesIcon, XIcon } from 'lucide-react'
 import { ChatMessages } from '@/components/chat/chat-messages'
@@ -10,7 +11,8 @@ import {
   ChatToolbarTextarea,
 } from '@/components/chat/chat-toolbar'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:8000'
+const CLERK_JWT_TEMPLATE = process.env.NEXT_PUBLIC_CLERK_JWT_TEMPLATE
 
 interface Message {
   id: string
@@ -24,6 +26,7 @@ function uid() {
 }
 
 export function ChatWidget({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
+  const { getToken, isSignedIn } = useAuth()
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [sessionId, setSessionId] = useState<string | null>(null)
@@ -56,14 +59,31 @@ export function ChatWidget({ open, onOpenChange }: { open: boolean; onOpenChange
     abortRef.current = new AbortController()
 
     try {
+      if (!isSignedIn) {
+        throw new Error('AUTH_REQUIRED')
+      }
+
+      const token = await getToken(
+        CLERK_JWT_TEMPLATE ? { template: CLERK_JWT_TEMPLATE } : undefined,
+      )
+
+      if (!token) {
+        throw new Error('AUTH_TOKEN_MISSING')
+      }
+
       const res = await fetch(`${API_URL}/api/v1/agent/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ message: text, session_id: sessionId }),
         signal: abortRef.current.signal,
       })
 
-      if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`)
+      if (!res.ok || !res.body) {
+        throw new Error(res.status === 401 ? 'AUTH_REJECTED' : `HTTP ${res.status}`)
+      }
 
       const reader = res.body.getReader()
       const decoder = new TextDecoder()
@@ -112,10 +132,14 @@ export function ChatWidget({ open, onOpenChange }: { open: boolean; onOpenChange
       }
     } catch (err: unknown) {
       if (err instanceof Error && err.name === 'AbortError') return
+      const message =
+        err instanceof Error && err.message.startsWith('AUTH')
+          ? 'No pude autenticar tu sesión con Hermes. Cierra sesión y vuelve a entrar; si sigue pasando, revisa el JWT Template de Clerk.'
+          : 'Error al conectar con el agente. Intenta de nuevo.'
       setMessages(prev =>
         prev.map(m =>
           m.id === assistantId
-            ? { ...m, text: 'Error al conectar con el agente. Intenta de nuevo.', streaming: false }
+            ? { ...m, text: message, streaming: false }
             : m,
         ),
       )
@@ -196,21 +220,12 @@ function TypewriterText({ text, active }: { text: string; active: boolean }) {
   const [cursor, setCursor] = useState(0)
 
   useEffect(() => {
-    setCursor(0)
-  }, [])
-
-  useEffect(() => {
-    if (cursor >= text.length) return
+    if (!active || cursor >= text.length) return
     const id = setTimeout(() => setCursor(c => Math.min(c + 4, text.length)), 12)
     return () => clearTimeout(id)
-  }, [cursor, text])
-
-  // When no longer streaming and cursor hasn't caught up yet, jump to end
-  useEffect(() => {
-    if (!active && cursor < text.length) setCursor(text.length)
   }, [active, cursor, text.length])
 
-  return <>{text.slice(0, cursor)}</>
+  return <>{active ? text.slice(0, cursor) : text}</>
 }
 
 // ── Burbuja de mensaje ────────────────────────────────────────────────────────

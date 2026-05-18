@@ -24,6 +24,15 @@ const RISK_LABELS: Record<string, string> = {
   critical: 'Crítico',
 }
 
+const SUSCEPTIBILITY_LABELS: Record<number, string> = {
+  0: 'Agua / sin dato',
+  1: 'Baja',
+  2: 'Baja',
+  3: 'Moderada',
+  4: 'Alta',
+  5: 'Alta',
+}
+
 const EMPTY_FEATURE_COLLECTION: GeoJSON.FeatureCollection = {
   type: 'FeatureCollection',
   features: [],
@@ -40,7 +49,7 @@ const LAYER_GROUPS: Record<MapLayerId, readonly string[]> = {
     'pois-icon-bg',
     'pois-symbol',
   ],
-  corridors: ['corridors-line'],
+  corridors: ['corridors-halo', 'corridors-line'],
 }
 
 function applyLayerVisibility(map: mapboxgl.Map, layers: MapLayerState) {
@@ -273,14 +282,25 @@ export function RiskMap({
         data: `${API}/map/corridors?is_demo=${isDemo}`,
       })
       map.addLayer({
+        id: 'corridors-halo',
+        type: 'line',
+        source: 'corridors',
+        layout: { 'line-cap': 'round', 'line-join': 'round' },
+        paint: {
+          'line-color': '#ecfeff',
+          'line-width': 7,
+          'line-opacity': 0.85,
+        },
+      })
+      map.addLayer({
         id: 'corridors-line',
         type: 'line',
         source: 'corridors',
         layout: { 'line-cap': 'round', 'line-join': 'round' },
         paint: {
-          'line-color': ['coalesce', ['get', 'risk_color'], '#64748b'],
-          'line-width': 3,
-          'line-opacity': 0.62,
+          'line-color': '#0f766e',
+          'line-width': 3.4,
+          'line-opacity': 0.96,
         },
       })
 
@@ -288,7 +308,7 @@ export function RiskMap({
       let riskSegments: GeoJSON.FeatureCollection = EMPTY_FEATURE_COLLECTION
       try {
         const res = await fetch(
-          `${API}/map/risk-segments?horizon=${horizon}&min_probability=0.0&is_demo=${isDemo}`,
+          `${API}/map/risk-segments?horizon=${horizon}&min_probability=0.2&is_demo=${isDemo}`,
           { signal: abortCtrl.signal },
         )
         if (!res.ok) throw new Error(res.statusText)
@@ -355,7 +375,7 @@ export function RiskMap({
           : `${API}/map/pois?types=hospital,clinic,pharmacy,supermarket&limit=1200`,
         cluster: true,
         clusterMaxZoom: 12,
-        clusterRadius: 34,
+        clusterRadius: 24,
       })
       map.addLayer({
         id: 'pois-cluster-circle',
@@ -363,19 +383,19 @@ export function RiskMap({
         source: 'pois',
         filter: ['has', 'point_count'],
         paint: {
-          'circle-color': '#ffffff',
+          'circle-color': '#0f172a',
           'circle-radius': [
             'step',
             ['get', 'point_count'],
-            16,
+            9,
             25,
-            20,
+            12,
             100,
-            26,
+            15,
           ],
-          'circle-stroke-color': '#111827',
-          'circle-stroke-width': 1.2,
-          'circle-opacity': 0.92,
+          'circle-stroke-color': '#67e8f9',
+          'circle-stroke-width': 1,
+          'circle-opacity': 0.76,
         },
       })
       map.addLayer({
@@ -385,12 +405,12 @@ export function RiskMap({
         filter: ['has', 'point_count'],
         layout: {
           'text-field': ['get', 'point_count_abbreviated'],
-          'text-size': 11,
+          'text-size': 9,
           'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
           'text-allow-overlap': true,
         },
         paint: {
-          'text-color': '#111827',
+          'text-color': '#ffffff',
         },
       })
       map.addLayer({
@@ -408,16 +428,24 @@ export function RiskMap({
             'supermarket', '#2563eb',
             '#64748b',
           ],
-          'circle-radius': 4,
+          'circle-radius': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            5, 2.2,
+            9, 3.6,
+            13, 5.2,
+          ],
           'circle-stroke-color': '#ffffff',
-          'circle-stroke-width': 1,
-          'circle-opacity': 0.88,
+          'circle-stroke-width': 0.8,
+          'circle-opacity': 0.78,
         },
       })
       map.addLayer({
         id: 'pois-symbol',
         type: 'symbol',
         source: 'pois',
+        minzoom: 8.5,
         filter: ['!', ['has', 'point_count']],
         layout: {
           'text-field': [
@@ -436,7 +464,8 @@ export function RiskMap({
             10,
           ],
           'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
-          'text-allow-overlap': true,
+          'text-allow-overlap': false,
+          'text-ignore-placement': false,
         },
         paint: {
           'text-color': '#ffffff',
@@ -601,16 +630,56 @@ function corridorPopupHTML(p: Record<string, unknown>): string {
   `
 }
 
+function formatNumber(value: unknown, digits = 1): string {
+  const numeric = Number(value)
+  if (!Number.isFinite(numeric)) return '—'
+  return numeric.toLocaleString('es-EC', {
+    maximumFractionDigits: digits,
+    minimumFractionDigits: digits,
+  })
+}
+
+function formatUpdatedAgo(value: unknown): string {
+  if (!value) return '—'
+  const date = new Date(String(value))
+  const time = date.getTime()
+  if (!Number.isFinite(time)) return '—'
+
+  const diffMs = Date.now() - time
+  if (diffMs < 0) return date.toLocaleString('es-EC')
+
+  const minutes = Math.round(diffMs / 60_000)
+  if (minutes < 1) return 'hace menos de 1 min'
+  if (minutes < 60) return `hace ${minutes} min`
+
+  const hours = Math.round(minutes / 60)
+  if (hours < 24) return `hace ${hours} h`
+
+  const days = Math.round(hours / 24)
+  return `hace ${days} d`
+}
+
+function susceptibilityLabel(value: unknown): string {
+  if (value == null) return '—'
+  const cls = Number(value)
+  if (!Number.isFinite(cls)) return '—'
+  const rounded = Math.round(cls)
+  const label = SUSCEPTIBILITY_LABELS[rounded] ?? '—'
+  return label === '—' ? label : `${label} (clase ${rounded})`
+}
+
 function riskSegmentPopupHTML(p: Record<string, unknown>): string {
   const risk = String(p.risk_level ?? '')
   const color = String(p.risk_color ?? '#f97316')
   const prob = Math.round(Number(p.probability ?? 0) * 100)
+  const susceptibility = susceptibilityLabel(p.susceptibility_class)
   return `
     <div style="font-size:13px;line-height:1.6;padding:2px 0">
       <p style="font-weight:600;margin:0 0 6px;font-size:14px">${p.corridor_name ?? p.name ?? 'Tramo afectado'}</p>
       <p style="margin:0;color:#555">Riesgo: <strong style="color:${color}">${RISK_LABELS[risk] ?? risk}</strong></p>
       <p style="margin:0;color:#555">Probabilidad: <strong>${prob}%</strong></p>
       <p style="margin:0;color:#555">Horizonte: <strong>${p.horizon_hours}h</strong></p>
+      <p style="margin:0;color:#555">Susceptibilidad: <strong>${susceptibility}</strong></p>
       <p style="margin:0;color:#555">Segmento: <strong>${p.segment_index ?? '-'}</strong></p>
     </div>
   `
@@ -620,12 +689,17 @@ function zonePopupHTML(p: Record<string, unknown>): string {
   const risk = String(p.risk_level ?? 'none')
   const color = String(p.risk_color ?? '#22c55e')
   const probability = p.probability == null ? null : Math.round(Number(p.probability) * 100)
+  const horizon = p.horizon_hours ?? '-'
+  const rainfall = p.expected_rainfall_mm == null ? '—' : `${formatNumber(p.expected_rainfall_mm)} mm`
+  const susceptibility = susceptibilityLabel(p.peak_susceptibility_class)
+  const updated = formatUpdatedAgo(p.computed_at)
   return `
     <div style="font-size:13px;line-height:1.6;padding:2px 0">
       <p style="font-weight:600;margin:0 0 6px;font-size:14px">${p.name ?? 'Zona'}</p>
-      <p style="margin:0;color:#555">Riesgo local: <strong style="color:${color}">${RISK_LABELS[risk] ?? risk}</strong></p>
-      <p style="margin:0;color:#555">Probabilidad: <strong>${probability == null ? '-' : `${probability}%`}</strong></p>
-      <p style="margin:0;color:#555">Horizonte: <strong>${p.horizon_hours ?? '-'}h</strong></p>
+      <p style="margin:0;color:#555">Riesgo ${horizon}h: <strong style="color:${color}">${RISK_LABELS[risk] ?? risk}</strong> <strong>${probability == null ? '—' : `${probability}%`}</strong></p>
+      <p style="margin:0;color:#555">Lluvia esperada: <strong>${rainfall}</strong></p>
+      <p style="margin:0;color:#555">Susceptibilidad: <strong>${susceptibility}</strong></p>
+      <p style="margin:0;color:#555">Actualizado: <strong>${updated}</strong></p>
     </div>
   `
 }

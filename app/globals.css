@@ -84,7 +84,8 @@
   --color-border-subtle: var(--color-border-subtle);
   --color-brand: var(--color-brand);
 
-  --font-sans: var(--font-sans);
+  --font-sans:
+    var(--font-innovator), 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --font-display:
     var(--font-encode-condensed), var(--font-innovator), 'Helvetica Neue', Helvetica,
     Arial, sans-serif;
@@ -134,12 +135,6 @@ body {
   min-height: 100%;
   background-color: var(--color-surface-base);
   color: var(--color-text-primary);
-}
-
-body {
-  font-family: var(--font-sans);
-  font-size: var(--font-size-sm);
-  line-height: 1.55;
 }
 
 :focus-visible {
@@ -282,10 +277,12 @@ body {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
   html {
     @apply font-sans;
+  }
+  body {
+    @apply bg-surface-base text-text-primary font-sans;
+    font-size: var(--font-size-sm);
+    line-height: 1.55;
   }
 }
