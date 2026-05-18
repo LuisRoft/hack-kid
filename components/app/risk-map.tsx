@@ -40,7 +40,7 @@ const EMPTY_FEATURE_COLLECTION: GeoJSON.FeatureCollection = {
 
 const LAYER_GROUPS: Record<MapLayerId, readonly string[]> = {
   zones: ['zones-fill', 'zones-border'],
-  rain: ['rain-realtime-heatmap'],
+  rain: ['rain-heatmap'],
   landslideRisk: ['risk-segments-line'],
   landslideReports: ['landslides-realtime-circle'],
   resources: [
@@ -153,11 +153,13 @@ function fitToRiskSegments(
 
 export function RiskMap({
   isDemo,
+  isPredictive,
   horizon,
   layers,
   selectedCorridorName,
 }: {
   isDemo: boolean
+  isPredictive: boolean
   horizon: RiskHorizon
   layers: MapLayerState
   selectedCorridorName: string | null
@@ -213,24 +215,29 @@ export function RiskMap({
     const abortCtrl = new AbortController()
 
     map.on('load', async () => {
-      // ── Lluvia actual nacional ────────────────────────────────────
-      map.addSource('rain-realtime', {
+      // ── Lluvia: forecast (predictivo) o realtime (tiempo real) ─────
+      const rainUrl = isDemo
+        ? EMPTY_FEATURE_COLLECTION
+        : isPredictive
+          ? `${API}/map/rain/forecast?horizon=${horizon}`
+          : `${API}/map/rain/realtime?within_minutes=360`
+      map.addSource('rain', {
         type: 'geojson',
-        data: isDemo
-          ? EMPTY_FEATURE_COLLECTION
-          : `${API}/map/rain/realtime?within_minutes=360`,
+        data: rainUrl,
       })
       map.addLayer({
-        id: 'rain-realtime-heatmap',
+        id: 'rain-heatmap',
         type: 'heatmap',
-        source: 'rain-realtime',
+        source: 'rain',
         paint: {
           'heatmap-weight': [
             'interpolate',
             ['linear'],
             ['get', 'precipitation_mm_h'],
             0, 0,
-            20, 1,
+            0.5, 0.3,
+            1, 0.6,
+            3, 1,
           ],
           'heatmap-intensity': 0.9,
           'heatmap-radius': 28,

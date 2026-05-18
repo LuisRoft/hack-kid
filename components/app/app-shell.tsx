@@ -307,8 +307,9 @@ export function AppShell() {
 
         <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
           <RiskMap
-            key={`${scenario}-${horizon}`}
+            key={`${scenario}-${viewMode}-${horizon}`}
             isDemo={isDemo}
+            isPredictive={isPredictive}
             horizon={horizon}
             layers={effectiveLayers}
             selectedCorridorName={selectedCorridorName}

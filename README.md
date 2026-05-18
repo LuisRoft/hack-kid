@@ -1,12 +1,17 @@
-# hack-kid — Frontend Aegis
+# Aegis
 
-**Aplicación ciudadana de gestión de riesgo catastrófico — Hackathon Latam (Track DEF/ACC)**
+**Plataforma de alerta temprana para deslaves en Ecuador — Hackathon Latam (Track DEF/ACC)**
+
+Aegis es una plataforma de alerta temprana que protege a las familias ecuatorianas cuando el clima se pone peligroso.
+Utilizamos datos satelitales, modelos de precipitación y análisis de susceptibilidad del terreno para predecir dónde y cuándo el riesgo de deslaves puede afectar tu zona. Con hasta 72 horas de anticipación, convertimos esas alertas en un plan de acción claro para tu familia: qué revisar, a dónde ir, y cuándo actuar.
 
 Mapa vivo con capas de riesgo + Agente conversacional Hermes que genera planes de acción personalizados para el ciudadano.
 
+**Backend:** https://github.com/LuisRoft/back-kid — toda la lógica de datos, cálculos y predicciones.
+
 ---
 
-## Qué hace
+## Quickstart
 
 - **Mapa interactivo** con capas de riesgo por corredor vial, zona administrativa, precipitación y POIs útiles
 - **Panel de alertas** en tiempo real basadas en forecasts 24/48/72h
