@@ -1,169 +1,68 @@
 # Aegis
 
-**Plataforma de alerta temprana para deslaves en Ecuador — Hackathon Latam (Track DEF/ACC)**
-
-Aegis es una plataforma de alerta temprana que protege a las familias ecuatorianas cuando el clima se pone peligroso.
-Utilizamos datos satelitales, modelos de precipitación y análisis de susceptibilidad del terreno para predecir dónde y cuándo el riesgo de deslaves puede afectar tu zona. Con hasta 72 horas de anticipación, convertimos esas alertas en un plan de acción claro para tu familia: qué revisar, a dónde ir, y cuándo actuar.
-
-Mapa vivo con capas de riesgo + Agente conversacional Hermes que genera planes de acción personalizados para el ciudadano.
-
-**Backend:** https://github.com/LuisRoft/back-kid — toda la lógica de datos, cálculos y predicciones.
+**Plataforma de alerta temprana para deslaves en Ecuador**
 
 ---
 
-## Quickstart
+El cambio climático está haciendo que los eventos climáticos extremos sean más frecuentes y más impredecibles. En Ecuador, los deslaves caused by heavy rainfall represent one of the highest risks for rural communities and critical infrastructure. When the warning comes, families have minutes to act — not hours.
 
-- **Mapa interactivo** con capas de riesgo por corredor vial, zona administrativa, precipitación y POIs útiles
-- **Panel de alertas** en tiempo real basadas en forecasts 24/48/72h
-- **Agente Hermes** — chat conversacional que responde sobre riesgos y genera planes de acción
-- **Onboarding** — registro del perfil del ciudadano (ubicación, familia, recursos)
+Aegis changes that by giving families **72 hours of advance notice** before a landslide risk becomes a real threat to their zone.
 
 ---
 
-## Stack
+## Cómo funciona
+
+### Datos que importan, procesados en tiempo real
+
+- **Datos satelitales de precipitación** — información climática actualizada constantemente
+- **Modelos de susceptibilidad del terreno** — análisis geoespacial que identifica cuáles zonas son más vulnerables a deslaves based on slope, soil type, and vegetation cover
+- **Pronósticos de lluvia a 24, 48 y 72 horas** — para que cada familia sepa qué esperar y pueda planificar
+
+### Un mapa que te muestra la realidad
+
+El mapa no es solo visual — es funcional. Cada capa representa datos específicos que Aegis procesa y renderiza en tiempo real:
+
+- **Corredores viales monitoreados** — las carreteras que importan para tu zona
+- **Riesgo por zona administrativa** — cantones y parroquias coloreados según probabilidad de impacto
+- **Tramos de riesgo en corredores** — secciones específicas de carretera con probabilidad de ser afectadas
+- **Lluvia en tiempo real** — datos actuales de precipitación en todo el país
+- **Deslaves reportados** — eventos recientes captados por sistemas de monitoreo
+- **Recursos cercanos** — hospitales, clínicas, farmacias y supermercados geolocalizados
+
+### Hermes — tu guía conversacional
+
+Cuando tenés una alerta, necesitás saber qué hacer. Hermes es el agente de IA que:
+
+1. Te explica el riesgo específico de tu zona en lenguaje simple
+2. Te guía paso a paso para crear un **plan de acción familiar**
+3. Considera tu ubicación, tu familia y los recursos disponibles cerca de ti
+
+El plan no es un documento genérico — es accionable: qué revisar, a dónde ir, y cuándo actuar.
+
+---
+
+## La profundidad de la solución
+
+**Datos geoespaciales en formato GeoJSON** — todo lo que ves en el mapa viene de APIs que sirven FeatureCollections estandarizadas. Esto significa que cada dato tiene coordenadas precisas, niveles de riesgo calculados, y metadatos que permiten renderizado condicional.
+
+**Mapbox GL JS como motor de renderizado** — capas con estilos dinámicos basados en propiedades (color que cambia según probability), clusters que se expanden, popups con información contextual, y bounds que se ajustan automáticamente al seleccionar un corredor específico.
+
+**Cálculos de riesgo en el backend** — cada FeatureCollection no es solo un dump de datos. Los endpoints de `/map/risk-segments` y `/map/zones` computan peak risk, horizon hours, y susceptibility classes en tiempo real.
+
+**SSE para respuestas conversacionales** — Hermes no responde con polling. Usa Server-Sent Events para streaming en tiempo real, lo que significa que empezás a ver la respuesta en milisegundos, no después de un delay de processing.
+
+---
+
+## Stack técnico
 
 | Capa | Tecnología |
 |---|---|
 | Framework | **Next.js 15** (App Router, React 19, TypeScript) |
 | UI Components | **Shadcn/UI** + Radix primitives |
-| Estilos | Tailwind CSS v4 + CSS animations |
+| Estilos | Tailwind CSS v4 + CSS custom properties |
 | Mapa | **Mapbox GL JS** |
 | Auth | **Clerk** (JWT + session management) |
-| Server | Next.js server components + Route Handlers |
 | Package manager | **pnpm** |
-
----
-
-## Estructura
-
-```
-app/
-├── page.tsx                 # Landing page pública
-├── app/
-│   ├── page.tsx            # App principal (mapa + alertas + chat)
-│   └── layout.tsx          # App shell con sidebar
-├── onboarding/
-│   ├── page.tsx            # Formulario perfil ciudadano
-│   └── actions.ts          # Server actions para guardar perfil
-├── sign-in/                 # Clerk sign-in pages
-├── sign-up/                 # Clerk sign-up pages
-└── api/
-    └── citizen-profile/    # Route handler — guarda perfil en Clerk unsafeMetadata
-
-components/
-├── app/
-│   ├── app-shell.tsx       # Layout principal: sidebar + mapa + panel
-│   ├── risk-map.tsx        # Mapa Mapbox GL con todas las capas
-│   ├── alerts-panel.tsx    # Panel de alertas activas
-│   ├── chat-widget.tsx     # Widget Hermes (SSE, requiere JWT)
-│   └── action-plan-panel.tsx # Plan de acción generado por Hermes
-│
-├── landing/                # Secciones de la landing page
-│   ├── hero-section.tsx
-│   ├── problem-section.tsx
-│   ├── cascades-section.tsx
-│   ├── how-it-works-section.tsx
-│   ├── data-sources-section.tsx
-│   └── ...
-│
-├── auth/                   # Componentes Clerk autenticación
-│   ├── sign-up-form.tsx
-│   ├── sign-in-form.tsx
-│   └── ...
-│
-├── chat/                   # Chat UI (burbujas, toolbar, markdown render)
-│   ├── chat.tsx
-│   ├── chat-messages.tsx
-│   ├── chat-toolbar.tsx
-│   └── chat-header.tsx
-│
-└── ui/                     # Shadcn primitives (button, sheet, textarea, avatar)
-
-lib/
-├── auth-routes.ts          # Paths de autenticación
-├── auth-navigation.ts      # Navegación post-auth (redirects)
-├── onboarding.ts          # Lógica de onboarding check
-├── action-plan.ts         # Parser del response de Hermes → ActionPlan
-└── reverse-geocode.ts     # Reverse geocoding para ubicación ciudadano
-```
-
----
-
-## Capas del Mapa
-
-| Layer ID | Fuente backend | Descripción |
-|---|---|---|
-| `corridors` | `/map/corridors` | Red monitoreada base (verde) |
-| `risk-segments` | `/map/risk-segments?horizon=24\|48\|72` | Tramos afectados (rojo/naranja) |
-| `zones` | `/map/zones?horizon=24\|48\|72` | Zonas administrativas |
-| `rain` | `/map/rain/realtime` | Lluvia actual (heatmap) |
-| `landslideReports` | `/map/landslides/realtime` | Deslaves recientes |
-| `resources` | `/map/pois` | Hospitales, clínicas, farmacias, supermercados |
-
----
-
-## Flujo de Datos
-
-```
-Usuario interactúa con mapa
-  ↓
-RiskMap.tsx fetchea endpoints /api/v1/map/*
-  ↓
-Backend (back-kid) sirve GeoJSON pre-computado
-  ↓
-Mapbox GL renderiza capas con estilos condicionales por risk_level
-
----
-
-Usuario abre chat Hermes
-  ↓
-ChatWidget.tsx obtiene Clerk JWT
-  ↓
-POST /api/v1/agent/chat con Bearer token
-  ↓
-Backend responde via SSE
-  ↓
-Markdown renderizado en burbujas
-  ↓
-Si "Modo plan" → action-plan.ts parsea respuesta → ActionPlanPanel
-```
-
----
-
-## Hermes — Agente Conversacional
-
-Integrado via **SSE (Server-Sent Events)**. Flujo:
-
-1. Usuario autenticado con Clerk
-2. `ChatWidget` obtiene JWT template
-3. `POST /api/v1/agent/chat` con `Authorization: Bearer <jwt>`
-4. Backend verifica JWT, extrae perfil del `unsafeMetadata`
-5. Claude Agent SDK responde via SSE con `type: text` chunks
-6. `type: done` indica fin del stream
-
-**Modo plan de acción:** Cuando el usuario activa el toggle "Modo plan", el siguiente mensaje incluye `PLAN_MODE_INSTRUCTION` — una instrucción que fuerza a Hermes a responder con un formato estructurado que `action-plan.ts` parsea a un `ActionPlan` consumible por `ActionPlanPanel`.
-
----
-
-## Auth con Clerk
-
-- **Sign-up/Sign-in** handled by Clerk's hosted UI (`<SignUp>` / `<SignIn>` components)
-- **JWT Template** configurado en Clerk dashboard para emitir tokens custom
-- **Perfil ciudadano** almacenado en Clerk `unsafeMetadata` (no hay tabla `users` en backend)
-- **Onboarding guard** en `app/app/page.tsx` — redirige si `hasCompletedOnboarding` es false
-
----
-
-## Lo que demuestra ingeniería
-
-1. **App Router + Server Components** — páginas asíncronas, datos en server, zero client-side fetching para datos iniciais
-2. **Componentes de UI accesibles** — Shadcn/Radix, semantic HTML, ARIA labels
-3. **Mapbox GL avanzado** — GeoJSON sources, capas condicionales, clusters, popups, fit-to-bounds
-4. **SSE streaming** — consumo de streams del backend con `ReadableStream` reader, parsing línea a línea
-5. **Markdown renderer custom** — sin dependencias externas, soporta negritas, links, listas, headings
-6. **TypeScript strict** — tipos en todo, ningún `any`
-7. **Tailwind v4** — CSS-first approach, design tokens, sin archivos CSS separados
-8. **Clerk integration** — JWT template, `getToken()` con template, `useAuth()` hook
 
 ---
 
@@ -196,9 +95,16 @@ pnpm dev
 
 ---
 
-## Deployment
+## Arquitectura de datos
 
-| Componente | Plataforma |
-|---|---|
-| Frontend | **Vercel** |
-| Auth | **Clerk** (gestionado) |
+```
+Frontend (Next.js + Mapbox GL)
+    ↓ fetch /api/v1/map/*
+Backend (FastAPI + PostGIS + GeoAlchemy)
+    ↓ procesa y computa
+Satellite data / Weather models / LHASA NRT
+```
+
+---
+
+**Backend:** https://github.com/LuisRoft/back-kid
