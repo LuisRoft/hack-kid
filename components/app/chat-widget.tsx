@@ -131,7 +131,7 @@ export function ChatWidget({
 
             if (event.type === 'done') {
               if (event.session_id) setSessionId(event.session_id)
-              const plan = actionPlanFromHermesText(assistantText)
+              const plan = actionPlanFromHermesText(assistantText, text)
               if (plan) onActionPlan?.(plan)
               setMessages(prev =>
                 prev.map(m =>
