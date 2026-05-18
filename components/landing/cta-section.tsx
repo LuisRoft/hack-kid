@@ -33,13 +33,13 @@ export function CtaSection() {
           Hermes convierta la alerta en un plan accionable.
         </p>
         <div className='mt-8 flex flex-wrap items-center justify-center gap-3'>
-          <Button asChild className='h-auto rounded-[var(--radius-xs)] px-5 py-2.5'>
+          <Button asChild className='bg-brand text-text-secondary hover:bg-[#0a2d6e] h-auto rounded-[var(--radius-xs)] px-5 py-2.5'>
             <Link href='/sign-up'>
               Crear mi plan
               <ArrowIcon />
             </Link>
           </Button>
-          <Button asChild variant='secondary' className='h-auto rounded-[var(--radius-xs)] px-5 py-2.5'>
+          <Button asChild variant='outline' className='border-brand text-brand hover:bg-brand/10 h-auto rounded-[var(--radius-xs)] px-5 py-2.5'>
             <Link href='/sign-in'>Ya tengo cuenta</Link>
           </Button>
         </div>
