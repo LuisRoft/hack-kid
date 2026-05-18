@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
-const API = 'http://127.0.0.1:8000/api/v1'
+const API = `${process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:8000'}/api/v1`
 
 export type RiskHorizon = 24 | 48 | 72
 export type MapLayerId =
