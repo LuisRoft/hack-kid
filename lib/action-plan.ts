@@ -204,6 +204,31 @@ function summaryFrom(text: string): string {
   return first?.slice(0, 150) ?? 'Acciones priorizadas por Hermes según tu perfil, ubicación y contexto de riesgo.';
 }
 
+function buildPlan(text: string, minItems: number): ActionPlan | null {
+  const items = text
+    .split('\n')
+    .filter(isActionLine)
+    .map(cleanLine)
+    .filter((line, index, arr) => arr.indexOf(line) === index)
+    .slice(0, 12)
+    .map<ActionPlanItem>((line, index) => ({
+      id: `action-${Date.now()}-${index}`,
+      text: line,
+      phase: phaseFor(line),
+    }));
+
+  if (items.length < minItems) return null;
+
+  return {
+    id: `plan-${Date.now()}`,
+    title: 'Plan de acción familiar',
+    summary: summaryFrom(text),
+    createdAt: new Date().toISOString(),
+    items,
+    resources: extractResources(text),
+  };
+}
+
 export function actionPlanFromHermesText(text: string, userMessage: string): ActionPlan | null {
   const lower = text.toLowerCase();
   const looksLikePlan =
@@ -218,27 +243,19 @@ export function actionPlanFromHermesText(text: string, userMessage: string): Act
 
   if (!userAskedForPlan(userMessage) || !looksLikePlan) return null;
 
-  const items = text
-    .split('\n')
-    .filter(isActionLine)
-    .map(cleanLine)
-    .filter((line, index, arr) => arr.indexOf(line) === index)
-    .slice(0, 9)
-    .map<ActionPlanItem>((line, index) => ({
-      id: `action-${Date.now()}-${index}`,
-      text: line,
-      phase: phaseFor(line),
-    }));
-
-  const phases = new Set(items.map((item) => item.phase));
-  if (items.length < 3 || phases.size < 2) return null;
-
-  return {
-    id: `plan-${Date.now()}`,
-    title: 'Plan de acción familiar',
-    summary: summaryFrom(text),
-    createdAt: new Date().toISOString(),
-    items,
-    resources: extractResources(text),
-  };
+  const plan = buildPlan(text, 3);
+  if (!plan) return null;
+  const phases = new Set(plan.items.map((item) => item.phase));
+  if (phases.size < 2) return null;
+  return plan;
 }
+
+export function forcedActionPlanFromHermesText(text: string): ActionPlan | null {
+  return buildPlan(text, 2);
+}
+
+export const PLAN_MODE_INSTRUCTION =
+  '\n\n(El ciudadano activó el modo plan de acción en la interfaz. ' +
+  'Entrega ya el plan estructurado en los tres bloques exactos — "Ahora mismo", ' +
+  '"Próximas 24 horas", "Si el escenario empeora" — con acciones específicas, ' +
+  'y cierra con la sección "Recursos verificados" con URLs completas.)';

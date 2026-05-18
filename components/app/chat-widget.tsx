@@ -1,8 +1,9 @@
 'use client'
 
 import { useAuth } from '@clerk/nextjs'
+import type { ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
-import { SendIcon, SparklesIcon, XIcon } from 'lucide-react'
+import { ListChecksIcon, SendIcon, SparklesIcon, XIcon } from 'lucide-react'
 import { ChatMessages } from '@/components/chat/chat-messages'
 import {
   ChatToolbar,
@@ -10,7 +11,11 @@ import {
   ChatToolbarButton,
   ChatToolbarTextarea,
 } from '@/components/chat/chat-toolbar'
-import { actionPlanFromHermesText } from '@/lib/action-plan'
+import {
+  PLAN_MODE_INSTRUCTION,
+  actionPlanFromHermesText,
+  forcedActionPlanFromHermesText,
+} from '@/lib/action-plan'
 import type { ActionPlan } from '@/components/app/action-plan-panel'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:8000'
@@ -41,6 +46,7 @@ export function ChatWidget({
   const [input, setInput] = useState('')
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [planMode, setPlanMode] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
 
   function handleOpenChange(next: boolean) {
@@ -56,8 +62,12 @@ export function ChatWidget({
     const text = input.trim()
     if (!text || busy) return
 
+    const planModeForTurn = planMode
+    const messageToSend = planModeForTurn ? `${text}${PLAN_MODE_INSTRUCTION}` : text
+
     setInput('')
     setBusy(true)
+    if (planModeForTurn) setPlanMode(false)
 
     const assistantId = uid()
     setMessages(prev => [
@@ -87,7 +97,7 @@ export function ChatWidget({
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message: text, session_id: sessionId }),
+        body: JSON.stringify({ message: messageToSend, session_id: sessionId }),
         signal: abortRef.current.signal,
       })
 
@@ -131,7 +141,9 @@ export function ChatWidget({
 
             if (event.type === 'done') {
               if (event.session_id) setSessionId(event.session_id)
-              const plan = actionPlanFromHermesText(assistantText, text)
+              const plan = planModeForTurn
+                ? forcedActionPlanFromHermesText(assistantText)
+                : actionPlanFromHermesText(assistantText, text)
               if (plan) onActionPlan?.(plan)
               setMessages(prev =>
                 prev.map(m =>
@@ -206,11 +218,39 @@ export function ChatWidget({
 
         {/* Input */}
         <ChatToolbar>
+          {planMode ? (
+            <ChatToolbarAddon align="block-start" className="w-full h-auto">
+              <div className="flex w-full items-center justify-between gap-2 rounded-md bg-brand/8 px-2.5 py-1.5 text-[11px] text-brand">
+                <span className="flex items-center gap-1.5 font-medium">
+                  <ListChecksIcon className="size-3.5" />
+                  Modo plan de acción activo · tu próximo mensaje genera el plan
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPlanMode(false)}
+                  className="text-[11px] font-medium underline-offset-2 hover:underline"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </ChatToolbarAddon>
+          ) : null}
+          <ChatToolbarAddon align="inline-start">
+            <ChatToolbarButton
+              onClick={() => setPlanMode(v => !v)}
+              aria-label="Activar modo plan de acción"
+              aria-pressed={planMode}
+              title="Generar plan de acción con la siguiente respuesta"
+              className={planMode ? 'bg-brand/10 text-brand hover:bg-brand/15' : ''}
+            >
+              <ListChecksIcon />
+            </ChatToolbarButton>
+          </ChatToolbarAddon>
           <ChatToolbarTextarea
             value={input}
             onChange={e => setInput(e.target.value)}
             onSubmit={sendMessage}
-            placeholder="Escribe un mensaje…"
+            placeholder={planMode ? 'Describe tu situación y genero el plan…' : 'Escribe un mensaje…'}
             disabled={busy}
           />
           <ChatToolbarAddon align="inline-end">
@@ -228,18 +268,122 @@ export function ChatWidget({
   )
 }
 
-// ── Typewriter ────────────────────────────────────────────────────────────────
+// ── Render markdown ligero ────────────────────────────────────────────────────
+// Renderiza negritas, listas, enlaces y párrafos sin exponer markdown crudo.
 
-function TypewriterText({ text, active }: { text: string; active: boolean }) {
-  const [cursor, setCursor] = useState(0)
+function renderInline(text: string): ReactNode[] {
+  const parts: ReactNode[] = []
+  const regex =
+    /\*\*([^*\n]+)\*\*|\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)|(https?:\/\/[^\s)]+)/g
+  let lastIndex = 0
+  let key = 0
+  let match: RegExpExecArray | null
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) parts.push(text.slice(lastIndex, match.index))
+    if (match[1]) {
+      parts.push(<strong key={key++} className="font-semibold">{match[1]}</strong>)
+    } else if (match[2] && match[3]) {
+      parts.push(
+        <a
+          key={key++}
+          href={match[3]}
+          target="_blank"
+          rel="noreferrer"
+          className="underline underline-offset-2 break-words"
+        >
+          {match[2]}
+        </a>,
+      )
+    } else if (match[4]) {
+      const url = match[4].replace(/[).,;]+$/, '')
+      parts.push(
+        <a
+          key={key++}
+          href={url}
+          target="_blank"
+          rel="noreferrer"
+          className="underline underline-offset-2 break-all"
+        >
+          {url.replace(/^https?:\/\//, '').replace(/^www\./, '').slice(0, 50)}
+        </a>,
+      )
+    }
+    lastIndex = match.index + match[0].length
+  }
+  if (lastIndex < text.length) parts.push(text.slice(lastIndex))
+  return parts
+}
 
-  useEffect(() => {
-    if (!active || cursor >= text.length) return
-    const id = setTimeout(() => setCursor(c => Math.min(c + 4, text.length)), 12)
-    return () => clearTimeout(id)
-  }, [active, cursor, text.length])
+function MarkdownText({ text }: { text: string }) {
+  const blocks: ReactNode[] = []
+  const lines = text.split('\n')
 
-  return <>{active ? text.slice(0, cursor) : text}</>
+  let listItems: string[] = []
+  let listType: 'ul' | 'ol' | null = null
+
+  const flushList = () => {
+    if (listItems.length === 0) return
+    const items = listItems
+    if (listType === 'ol') {
+      blocks.push(
+        <ol key={blocks.length} className="list-decimal pl-5 space-y-1 my-1.5">
+          {items.map((item, i) => (
+            <li key={i}>{renderInline(item)}</li>
+          ))}
+        </ol>,
+      )
+    } else {
+      blocks.push(
+        <ul key={blocks.length} className="list-disc pl-5 space-y-1 my-1.5">
+          {items.map((item, i) => (
+            <li key={i}>{renderInline(item)}</li>
+          ))}
+        </ul>,
+      )
+    }
+    listItems = []
+    listType = null
+  }
+
+  for (const raw of lines) {
+    const line = raw.replace(/\s+$/, '')
+    const ol = line.match(/^\s*\d+[.)]\s+(.*)$/)
+    const ul = line.match(/^\s*[-*•]\s+(.*)$/)
+    if (ol) {
+      if (listType !== 'ol') flushList()
+      listType = 'ol'
+      listItems.push(ol[1])
+      continue
+    }
+    if (ul) {
+      if (listType !== 'ul') flushList()
+      listType = 'ul'
+      listItems.push(ul[1])
+      continue
+    }
+    flushList()
+    if (line.trim().length === 0) {
+      if (blocks.length > 0) blocks.push(<div key={blocks.length} className="h-1.5" />)
+      continue
+    }
+    const heading = line.match(/^#{1,6}\s+(.*)$/)
+    if (heading) {
+      blocks.push(
+        <p key={blocks.length} className="font-semibold mt-1.5 mb-0.5">
+          {renderInline(heading[1])}
+        </p>,
+      )
+      continue
+    }
+    blocks.push(
+      <p key={blocks.length} className="leading-relaxed">
+        {renderInline(line)}
+      </p>,
+    )
+  }
+  flushList()
+
+  return <div className="space-y-0.5">{blocks}</div>
 }
 
 // ── Burbuja de mensaje ────────────────────────────────────────────────────────
@@ -260,10 +404,10 @@ function MessageBubble({ message }: { message: Message }) {
       {/* Burbuja */}
       <div
         className={[
-          'max-w-[78%] px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap break-words',
+          'max-w-[82%] px-3.5 py-2.5 text-sm leading-relaxed break-words',
           isUser
-            ? 'bg-muted text-foreground rounded-2xl rounded-bl-sm'
-            : 'bg-brand text-white rounded-2xl rounded-br-sm',
+            ? 'bg-muted text-foreground rounded-2xl rounded-bl-sm whitespace-pre-wrap'
+            : 'bg-brand text-white rounded-2xl rounded-br-sm [&_a]:text-white [&_a]:decoration-white/60',
         ].join(' ')}
       >
         {isUser ? (
@@ -276,7 +420,7 @@ function MessageBubble({ message }: { message: Message }) {
             <span className="size-1.5 rounded-full bg-white/70 animate-bounce [animation-delay:320ms]" />
           </span>
         ) : (
-          <TypewriterText text={message.text} active={!!message.streaming} />
+          <MarkdownText text={message.text} />
         )}
       </div>
 
