@@ -13,7 +13,6 @@ import {
 } from '@/components/chat/chat-toolbar'
 import {
   PLAN_MODE_INSTRUCTION,
-  actionPlanFromHermesText,
   forcedActionPlanFromHermesText,
 } from '@/lib/action-plan'
 import type { ActionPlan } from '@/components/app/action-plan-panel'
@@ -141,10 +140,10 @@ export function ChatWidget({
 
             if (event.type === 'done') {
               if (event.session_id) setSessionId(event.session_id)
-              const plan = planModeForTurn
-                ? forcedActionPlanFromHermesText(assistantText)
-                : actionPlanFromHermesText(assistantText, text)
-              if (plan) onActionPlan?.(plan)
+              if (planModeForTurn) {
+                const plan = forcedActionPlanFromHermesText(assistantText)
+                if (plan) onActionPlan?.(plan)
+              }
               setMessages(prev =>
                 prev.map(m =>
                   m.id === assistantId ? { ...m, streaming: false } : m,
